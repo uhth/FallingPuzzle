@@ -101,7 +101,7 @@ public class TileDragController extends DragController
 
                     if (deltaIndex != 0)
                     {
-                        gameController.moveTile((Tile) target, oldIndex);
+                        gameController.moveTile((Tile) target, oldIndex, (Row) tile.getParent());
                     }
                 }
             };

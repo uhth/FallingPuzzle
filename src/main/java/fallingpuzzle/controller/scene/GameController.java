@@ -119,11 +119,11 @@ public class GameController extends Controller
         final TileMove tileMove = dlvController.getTileMoveFromOutput();
         if (tileMove != null)
         {
-            final Row row = tileMove.getTile().getRow();
+            final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
-            //row.moveTile(tileMove.getTile(), newIndex);
+            row.moveTile(tileMove.getTile(), newIndex);
             rowUp.handle(null);
-            //updateRows();
+            updateRows(true);
         }
     }
 
@@ -140,6 +140,11 @@ public class GameController extends Controller
     public int getRowIndex(final Row row)
     {
         return vboRows.getChildrenUnmodifiable().indexOf(row);
+    }
+
+    public void initBoard()
+    {
+        initBoard.handle(null);
     }
 
     @FXML
@@ -193,9 +198,8 @@ public class GameController extends Controller
 
     }
 
-    public void moveTile(final Tile tile, final Integer newIndex)
+    public void moveTile(final Tile tile, final Integer newIndex, final Row row)
     {
-        final Row row = tile.getRow();
         row.moveTile(tile, newIndex);
     }
 
@@ -206,12 +210,17 @@ public class GameController extends Controller
         lblScore.setText("0");
     }
 
+    public void rowUp()
+    {
+        rowUp.handle(null);
+    }
+
     /* MAIN ALGORITHM */
     // 1 - while -> check each row for falling tiles ( starting from bottom ) returns true
     // 2 - if -> check for a full row ( starting from bottom )
     // 2a true -> remove it then go to step 1
     // 2b false -> end
-    public void updateRows()
+    public void updateRows(final boolean addScore)
     {
         int score = 0;
 
@@ -232,7 +241,10 @@ public class GameController extends Controller
             }
             log.info("update");
         }
-        addScore(score);
+        if (addScore)
+        {
+            addScore(score);
+        }
 
     }
 
@@ -262,6 +274,7 @@ public class GameController extends Controller
 
         initBoard = event ->
             {
+                lblScore.setText("0");
                 vboNextRow.getChildren().clear();
                 vboRows.getChildren().clear();
                 while (vboRows.getChildrenUnmodifiable().size() < 5)
@@ -277,7 +290,11 @@ public class GameController extends Controller
                 tileGenerator.genTiles(row);
                 vboNextRow.addChildren(row);
                 row.updateTilesCoords();
-                row.fitToParent();
+                if (!row.getChildren().isEmpty())
+                {
+                    row.fitToParent();
+                }
+                updateRows(false);
             };
     }
 

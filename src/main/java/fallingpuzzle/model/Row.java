@@ -41,6 +41,7 @@ public class Row extends Pane
         {
             if (unavailableIndexes.contains(tileToTest.getIndexes().get(i)) || i < 0 || i > 7)
             {
+                log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
                 return true;
             }
         }
@@ -131,7 +132,6 @@ public class Row extends Pane
             if (!collidesWithOtherTiles(tile))
             {
                 getChildren().add(tile);
-                tile.setRow(this);
             }
         }
         updateTilesCoords();
@@ -143,7 +143,6 @@ public class Row extends Pane
         if (!checkForCollision || !collidesWithOtherTiles(tileToInsert))
         {
             getChildren().add(tileToInsert);
-            tileToInsert.setRow(this);
         }
         updateTilesCoords();
     }

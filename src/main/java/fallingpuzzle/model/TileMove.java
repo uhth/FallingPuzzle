@@ -10,4 +10,6 @@ public class TileMove
     Tile tile;
 
     Integer newIndex;
+
+    Integer rowIndex;
 }

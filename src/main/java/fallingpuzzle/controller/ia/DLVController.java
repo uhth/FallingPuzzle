@@ -122,7 +122,7 @@ public class DLVController
 
         final Row row = gameController.getRowByIndex(info.get("rowIndex"));
         final Tile tile = row.getTile(info.get("firstIndex"));
-        return new TileMove(tile, info.get("newIndex"));
+        return new TileMove(tile, info.get("newIndex"), info.get("rowIndex"));
     }
 
 }

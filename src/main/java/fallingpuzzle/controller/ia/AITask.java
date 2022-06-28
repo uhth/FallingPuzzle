@@ -24,8 +24,9 @@ public class AITask extends Task<Object>
                 if (Boolean.TRUE.equals(gc.getAiStateProperty().get()))
                 {
                     Platform.runLater(() -> gc.callAi());
+                    // Platform.runLater(() -> gc.initBoard());
                 }
-                Thread.sleep(500);
+                Thread.sleep(50);
             }
         }
         catch (final Exception e)

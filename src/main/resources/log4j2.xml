@@ -5,7 +5,7 @@
     <Appenders>
     	<!-- Console appender configuration -->
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n " />
+            <PatternLayout pattern="%d %-5p method: [%t] %C{2} (%F:%L) - %m%n " />
         </Console>
     </Appenders>
     <Loggers>

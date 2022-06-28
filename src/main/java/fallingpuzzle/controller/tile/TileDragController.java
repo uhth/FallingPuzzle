@@ -12,6 +12,7 @@ public class TileDragController extends DragController
 
     public TileDragController(final Node target)
     {
+
         super(target, true);
     }
 
@@ -21,7 +22,6 @@ public class TileDragController extends DragController
 
         setAnchor = event ->
             {
-                log.info("mgiokmasuiej");
                 if (event.isPrimaryButtonDown())
                 {
 

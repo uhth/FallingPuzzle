@@ -17,11 +17,16 @@ public class Row extends Pane
 
     public Row()
     {
+        setFocusTraversable(true);
     }
 
     /* Checks for each tile already in if the tested one has any index in common */
     public boolean collidesWithOtherTiles(final Tile tileToTest)
     {
+        if (getChildren().isEmpty())
+        {
+            return false;
+        }
         final ArrayList<Integer> unavailableIndexes = new ArrayList<Integer>();
         for (int i = 0; i < getChildren().size(); ++i)
         {
@@ -95,8 +100,6 @@ public class Row extends Pane
             final Tile tile = (Tile) getChildren().get(i);
             tile.updateTileSize(getWidth() / 8, getHeight());
         }
-
-        //	System.out.println( this.getWidth() / 8 );
 
     }
 

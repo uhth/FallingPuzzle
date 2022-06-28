@@ -1,5 +1,9 @@
 package fallingpuzzle.controller.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import fallingpuzzle.controller.Controller;
 import fallingpuzzle.controller.ia.AIService;
 import fallingpuzzle.controller.ia.DLVAdapter;
@@ -117,9 +121,9 @@ public class GameController extends Controller
         {
             final Row row = tileMove.getTile().getRow();
             final Integer newIndex = tileMove.getNewIndex();
-            row.moveTile(tileMove.getTile(), newIndex);
-            // rowUp.handle(null);
-            updateRows();
+            //row.moveTile(tileMove.getTile(), newIndex);
+            rowUp.handle(null);
+            //updateRows();
         }
     }
 
@@ -171,6 +175,8 @@ public class GameController extends Controller
         AnchorPane.setRightAnchor(vboRows, 0.0);
         AnchorPane.setTopAnchor(vboRows, 15.0);
 
+        achBoard.setFocusTraversable(true);
+
         createEvents();
         vboNextRow.addEventHandler(VBoxRow.CHILDREN_ADDED, rowSlideUp);
         tbnAiSwitch.setOnAction(iASwitch);
@@ -183,6 +189,7 @@ public class GameController extends Controller
         //cnvGameBG.getGraphicsContext2D().drawImage(new Image(this.getClass().getResourceAsStream("/images/bg4.png")), 0, 0);
 
         lblScore.setText("0");
+        vboRows.requestFocus();
 
     }
 
@@ -250,7 +257,6 @@ public class GameController extends Controller
                     vboNextRow.getChildren().remove(row);
                     row.fitToParent();
                     row.updateTilesCoords();
-                    updateRows();
                 }
             };
 
@@ -278,39 +284,46 @@ public class GameController extends Controller
     private boolean handleFallingTiles()
     {
         final ObservableList<Node> rows = vboRows.getChildren();
-        boolean falling = false;
+        final AtomicBoolean falling = new AtomicBoolean(false);
         for (int i = rows.size() - 2; i >= 0; --i)
         {
+            final List<Node> tilesToInsert = new ArrayList<>();
             final Row currentRow = (Row) rows.get(i);
             final Row nextRow = (Row) rows.get(i + 1);
-            for (int j = 0; j < currentRow.getChildren().size(); ++j)
-            {
-                final Tile tile = (Tile) currentRow.getChildren().get(j);
-                if (!nextRow.collidesWithOtherTiles(tile))
+            currentRow.getChildren().forEach(node ->
                 {
-                    nextRow.insert(tile, false);
-                    currentRow.remove(tile);
-                    falling = true;
-                }
-            }
+                    if (!nextRow.collidesWithOtherTiles((Tile) node))
+                    {
+                        tilesToInsert.add(node);
+                        falling.set(true);
+                    }
+                });
+            tilesToInsert.forEach(node ->
+                {
+                    nextRow.insert((Tile) node, false);
+                    currentRow.remove((Tile) node);
+                });
+            tilesToInsert.clear();
         }
-        return falling;
+        return falling.get();
     }
 
     private boolean handleFullRows()
     {
         final ObservableList<Node> rows = vboRows.getChildren();
-
+        final List<Node> rowsToRemove = new ArrayList<>();
+        boolean value = false;
         for (int i = rows.size() - 1; i >= 0; --i)
         {
             final Row currentRow = (Row) rows.get(i);
             if (currentRow.isFull())
             {
-                rows.remove(currentRow);
-                return true;
+                rowsToRemove.add(currentRow);
+                value = true;
             }
         }
-        return false;
+        rowsToRemove.forEach(node -> rows.remove(node));
+        return value;
     }
 
 }

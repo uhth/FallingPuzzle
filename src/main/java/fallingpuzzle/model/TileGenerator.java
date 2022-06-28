@@ -3,7 +3,9 @@ package fallingpuzzle.model;
 import java.util.Random;
 
 import javafx.scene.paint.Color;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class TileGenerator
 {
     Random random = new Random();
@@ -12,24 +14,19 @@ public class TileGenerator
     {
 
         final double tileHeight = row.getHeight() >= 73 ? row.getHeight() : 73;
-
-        while (row.getChildrenUnmodifiable().size() < 3)
+        while (row.getChildren().size() < 3)
         {
-            final int firstIndex = random.nextInt(8);
-            int nCell = 0;
-
-            nCell = random.nextInt(3) + 1;
-
-            final Tile tile = new Tile(firstIndex, nCell, row.getWidth() / 8, tileHeight);
-
-            while (true)
+            int index = 0;
+            int size = 0;
+            Tile tile;
+            do
             {
-                if (tile.getIndexes().get(tile.getNCell() - 1) < 8)
-                {
-                    break;
-                }
-                tile.setNCell(random.nextInt(3) + 1);
+                index = random.nextInt(6);
+                size = random.nextInt(3) + 1;
+                tile = new Tile(index, size, row.getWidth() / 8, tileHeight);
+                log.info("index: {} size: {} collides: {}", index, size, row.collidesWithOtherTiles(tile));
             }
+            while (row.collidesWithOtherTiles(tile));
 
             if (tile.getNCell() == 1)
             {
@@ -44,13 +41,7 @@ public class TileGenerator
                 tile.setFill(Color.BLUE);
             }
 
-            row.insert(tile, true);
-
-            if (row.isFull())
-            {
-                row.getChildren().clear();
-            }
-            genTiles(row);
+            row.getChildren().add(tile);
 
         }
     }

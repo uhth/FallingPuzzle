@@ -16,7 +16,6 @@
                   <VBox alignment="CENTER" layoutY="63.0" prefHeight="111.0" prefWidth="400.0" spacing="10.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="63.0">
                      <children>
                         <Button fx:id="btnPLAY" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="45.0" prefWidth="117.0" text="PLAY" />
-                        <Button fx:id="btnDLVPATH" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="45.0" prefWidth="117.0" text="DLV PATH" />
                      </children>
                   </VBox>
                </children>

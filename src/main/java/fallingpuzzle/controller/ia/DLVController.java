@@ -2,109 +2,119 @@ package fallingpuzzle.controller.ia;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import fallingpuzzle.controller.data.SettingsDAO;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import fallingpuzzle.controller.scene.GameController;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
-import javafx.util.Pair;
+import fallingpuzzle.model.TileMove;
 
-public class DLVController {	
-	
-	GameController gameController;
-	
-	public DLVController( GameController gameController ) {
-		this.gameController = gameController;
-	}
-	
-	public Pair<Tile, Integer> start( File file ) {
-		Pair<Tile, Integer> tileMove = null;
-		Runtime rt = Runtime.getRuntime();
-		// "--no-facts"
-		String[] commands = { SettingsDAO.getById( "DLV_PATH" ).getValue(), file.getAbsolutePath() };
-		Process proc;
-		try {
-			proc = rt.exec(commands);
-	
-			BufferedReader stdInput = new BufferedReader(new 
-			     InputStreamReader(proc.getInputStream(), Charset.defaultCharset()));
+public class DLVController
+{
 
-			tileMove = processOutput( stdInput );
-			
-			stdInput.close();
-		} 
-		
-		catch (IOException e) { e.printStackTrace(); }
-		
-		return tileMove;
-		
-	}
-	
-	private Pair<Tile, Integer> processOutput( BufferedReader stdInput ) throws IOException {
-		
-		String s = null;
-		String s1 = null;
-		
-		Pair<Tile, Integer> tileMove = null;
-		
-		int counter = 0;
-		while ( ( s = stdInput.readLine() ) != null ) {
-			if( counter++ < 2 ) continue;
-	//		System.out.println( s );
+    GameController gameController;
 
-			if( !s.contains( "tileMove" ) ) {
-				System.out.println( s );
-				return null;
-			}
-			//tileMove( firstIndex, newIndex, row );
-			s = s.strip();
-			s1 = s.replaceAll("(nTileMove\\(\\d+\\,\\d+\\,\\d+\\)\\,)+", "1" );
-			System.out.println( s1 );
-			
-			
-			int firstIndex = 0, newIndex = 0, rowIndex = 0;
-			int lastCharIndex = s.indexOf( "tileMove(" ) + 9;
-			
-			//get firstIndex			
-			for( int i = lastCharIndex; i < s.length(); ++i ) {
-				if( s.charAt( i ) == ',' || s.charAt( i ) == '}' ) {
-					lastCharIndex = ++i;
-					break;
-				}
-				String temp = "";
-				temp +=	s.charAt( i );
-				firstIndex *= 10;
-				firstIndex += Integer.parseInt( temp );
-			}
-			
-			//get newIndex
-			for( int i = lastCharIndex; i < s.length(); ++i ) {
-				if( s.charAt( i ) == ',' ) {
-					lastCharIndex = ++i;
-					break;
-				}
-				String temp = "";
-				temp +=	s.charAt( i );
-				newIndex *= 10;
-				newIndex += Integer.parseInt( temp );
-			}
-			
-			//get rowIndex
-			{
-				String temp = "";
-				temp += s.charAt( lastCharIndex );
-				rowIndex += Integer.parseInt( temp );
-			}
+    Process dlvProcess;
 
-			
-			Row row = gameController.getRow( rowIndex );
-			Tile tile = row.getTile( firstIndex );
-			tileMove = new Pair<Tile, Integer>( tile, newIndex );
-			return tileMove;
-		}
-		return tileMove;
-	}
-	
+    BufferedReader readerFromProc;
+
+    File dlvExe;
+
+    public DLVController(final GameController gameController)
+    {
+        this.gameController = gameController;
+        try
+        {
+            lookForDLV2();
+        }
+        catch (final Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public TileMove getTileMoveFromOutput()
+    {
+        TileMove tileMove = null;
+        try
+        {
+            tileMove = processOutput(readerFromProc.lines());
+        }
+        catch (final IOException e)
+        {
+            e.printStackTrace();
+        }
+        return tileMove;
+
+    }
+
+    public Process startProcess()
+    {
+        final Runtime rt = Runtime.getRuntime();
+        // "--no-facts"
+        final String[] commands = { dlvExe.getAbsolutePath(), "--stdin", "--no-facts" };
+        dlvProcess = null;
+        try
+        {
+            dlvProcess = rt.exec(commands);
+            readerFromProc = new BufferedReader(new InputStreamReader(dlvProcess.getInputStream(), Charset.defaultCharset()));
+        }
+        catch (final IOException e)
+        {
+            e.printStackTrace();
+        }
+        return dlvProcess;
+    }
+
+    private void lookForDLV2() throws FileNotFoundException
+    {
+        final File dlv2 = new File(getClass().getResource("/dlv").getPath());
+        final File[] files = dlv2.listFiles((pathname) ->
+            {
+                final Pattern p = Pattern.compile("\\..*", Pattern.CASE_INSENSITIVE);
+                final Matcher m = p.matcher(pathname.getName());
+                return !m.matches();
+            });
+        if (files == null || files.length == 0)
+        {
+            throw new FileNotFoundException("MISSING DLV2 EXECUTABLE");
+        }
+        dlvExe = files[0];
+    }
+
+    private TileMove processOutput(final Stream<String> output) throws IOException
+    {
+        final HashMap<String, Integer> info = new HashMap<>();
+
+        output.forEach(line ->
+            {
+                final Pattern pattern = Pattern
+                        .compile("(.*)(tileMove\\((?<firstIndex>[0-9]+),(?<newIndex>[0-9]+),(?<rowIndex>[0-9]+)\\))(.*)");
+                final Matcher matcher = pattern.matcher(line);
+
+                while (matcher.find())
+                {
+                    info.put("firstIndex", Integer.parseInt(matcher.group("firstIndex")));
+                    info.put("newIndex", Integer.parseInt(matcher.group("newIndex")));
+                    info.put("rowIndex", Integer.parseInt(matcher.group("rowIndex")));
+                }
+            });
+
+        if (info.entrySet().isEmpty())
+        {
+            return null;
+        }
+
+        final Row row = gameController.getRow(info.get("rowIndex"));
+        final Tile tile = row.getTile(info.get("firstIndex"));
+        return new TileMove(tile, info.get("newIndex"));
+    }
+
 }

@@ -1,7 +1,6 @@
 target/
 ps/
 bin/
-src/main/resources/dlv/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

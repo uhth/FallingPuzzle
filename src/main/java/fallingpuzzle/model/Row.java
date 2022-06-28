@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fallingpuzzle.controller.scene.GameController;
+import fallingpuzzle.controller.scene.VBoxRow;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class Row extends Pane
 {
 
@@ -79,7 +82,7 @@ public class Row extends Pane
 
     public void fitToParent()
     {
-        final VBox parent = (VBox) getParent();
+        final VBox parent = (VBoxRow) getParent();
         setMinWidth(parent.getWidth());
         setMaxWidth(parent.getWidth());
         setMaxHeight(parent.getHeight() / 10);
@@ -162,19 +165,20 @@ public class Row extends Pane
         final int oldIndex = tile.getFirstIndex();
         if (tilesInBeetween(tile, index))
         {
+            log.info("{}", "ILLEGAL MOVE");
             return false;
         }
         tile.move(index);
         if (collidesWithOtherTiles(tile))
         {
             tile.move(oldIndex);
-            System.out.println("illegal move ");
-            System.out.println("row: " + gameController.getRowPosition(this) + " move is: " + oldIndex + " to " + index);
+            log.info("{}", "ILLEGAL MOVE");
+            log.info("row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
             return false;
         }
         else
         {
-            System.out.println("row: " + gameController.getRowPosition(this) + " move is: " + oldIndex + " to " + index);
+            log.info("row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
             return true;
         }
     }
@@ -184,7 +188,7 @@ public class Row extends Pane
         getChildren().remove(tile);
     }
 
-    public void setController(final GameController gameController)
+    public void setGameController(final GameController gameController)
     {
         this.gameController = gameController;
     }

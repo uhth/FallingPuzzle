@@ -120,7 +120,7 @@ public class DLVController
             return null;
         }
 
-        final Row row = gameController.getRow(info.get("rowIndex"));
+        final Row row = gameController.getRowByIndex(info.get("rowIndex"));
         final Tile tile = row.getTile(info.get("firstIndex"));
         return new TileMove(tile, info.get("newIndex"));
     }

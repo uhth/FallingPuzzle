@@ -1,28 +1,29 @@
 package fallingpuzzle.controller.scene;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import fallingpuzzle.controller.Controller;
 import fallingpuzzle.controller.ia.AIService;
 import fallingpuzzle.controller.ia.DLVAdapter;
 import fallingpuzzle.controller.ia.DLVController;
+import fallingpuzzle.controller.scene.VBoxRow.ChildrenAddedEvent;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import fallingpuzzle.model.TileGenerator;
 import fallingpuzzle.model.TileMove;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -30,8 +31,6 @@ public class GameController extends Controller
 {
 
     private static Tile selectedTile;
-
-    private static AIService AiCycle;
 
     public static Scene getScene()
     {
@@ -54,11 +53,9 @@ public class GameController extends Controller
         selectedTile.setY(selectedTile.getY() + 1);
     }
 
-    @FXML
-    private VBox vboRows;
+    private VBoxRow vboRows;
 
-    @FXML
-    private VBox vboNextRow;
+    private VBoxRow vboNextRow;
 
     @FXML
     private AnchorPane achBoard;
@@ -89,11 +86,15 @@ public class GameController extends Controller
 
     private EventHandler<ActionEvent> initBoard;
 
-    private ObservableList<Node> rows;
+    private EventHandler<ChildrenAddedEvent> rowSlideUp;
 
-    private final AtomicBoolean isReady = new AtomicBoolean(true);
+    private TileGenerator tileGenerator;
 
-    final DLVAdapter dlvAdapter = new DLVAdapter();
+    private BooleanProperty aiStateProperty;
+
+    private Service<Object> aiService;
+
+    private DLVAdapter dlvAdapter;
 
     //IA STUFF
 
@@ -108,140 +109,94 @@ public class GameController extends Controller
 
     public void callAi()
     {
+
         final Process dlvProcess = dlvController.startProcess();
-        dlvAdapter.streamGridIntoProcess(rows, dlvProcess);
+        dlvAdapter.streamGridIntoProcess(vboRows.getChildrenUnmodifiable(), dlvProcess);
         final TileMove tileMove = dlvController.getTileMoveFromOutput();
         if (tileMove != null)
         {
-            log.info("{} {}", tileMove.getTile(), tileMove.getNewIndex());
-            moveTile(tileMove.getTile(), tileMove.getNewIndex());
-        }
-        isReady.set(true);
-    }
-
-    public void genRow()
-    {
-        //add row to preview vbox
-        createRow();
-        //shift upper row to game vbox
-        if (vboNextRow.getChildren().size() > 1)
-        {
-            final Row row1 = (Row) vboNextRow.getChildren().get(0);
-            vboNextRow.getChildren().remove(row1);
-            vboRows.getChildren().add(row1);
-
-            row1.fitToParent(); //TODO ISSUES HERE Out Of Bounds somehow
-
-            //add some features to tails
-            for (int i = 0; i < row1.getChildren().size(); ++i)
-            {
-                final Tile tile = (Tile) row1.getChildren().get(i);
-                tile.setSelectable(true);
-                tile.setDraggable(true);
-            }
-
-            log.info("genrow");
-
-        }
-
-        //GameOver
-        if (vboRows.getChildren().size() > 10)
-        {
-            System.out.println("GAME OVER");
-            reset();
-            mniInitBoard.fire();
+            final Row row = tileMove.getTile().getRow();
+            final Integer newIndex = tileMove.getNewIndex();
+            row.moveTile(tileMove.getTile(), newIndex);
+            // rowUp.handle(null);
+            updateRows();
         }
     }
 
-    public Row getRow(final int rowIndex)
+    public BooleanProperty getAiStateProperty()
     {
-        return (Row) vboRows.getChildren().get(rowIndex);
+        return aiStateProperty;
     }
 
-    public int getRowPosition(final Row row)
+    public Row getRowByIndex(final int index)
     {
-        for (int i = 0; i < rows.size(); ++i)
-        {
-            if (rows.get(i).equals(row))
-            {
-                return i;
-            }
-        }
-        return 0;
+        return (Row) vboRows.getChildren().get(index);
+    }
+
+    public int getRowIndex(final Row row)
+    {
+        return vboRows.getChildrenUnmodifiable().indexOf(row);
     }
 
     @FXML
     public void initialize()
     {
-        rows = vboRows.getChildren();
         dlvController = new DLVController(this);
-        AiCycle = new AIService(tbnAiSwitch, this);
+        tileGenerator = new TileGenerator();
+        dlvAdapter = new DLVAdapter();
+        aiStateProperty = new SimpleBooleanProperty(false);
+        aiService = new AIService(this);
+        aiService.start();
 
-        cnvGameBG.getGraphicsContext2D().drawImage(new Image(this.getClass().getResourceAsStream("/images/bg4.png")), 0, 0);
+        vboNextRow = new VBoxRow();
+        vboNextRow.idProperty().setValue("vboNextRow");
+        achBoard.getChildren().add(vboNextRow);
+        vboNextRow.setAlignment(Pos.BASELINE_CENTER);
+        vboNextRow.setFocusTraversable(true);
+        vboNextRow.setSpacing(1.0);
+        AnchorPane.setBottomAnchor(vboNextRow, 0.0);
+        AnchorPane.setLeftAnchor(vboNextRow, 0.0);
+        AnchorPane.setRightAnchor(vboNextRow, 0.0);
+        AnchorPane.setTopAnchor(vboNextRow, 812.0);
 
-        rowUp = event ->
-            {
-                genRow();
-                update();
-            };
-        mniRowUp.setOnAction(rowUp);
+        vboRows = new VBoxRow();
+        vboRows.idProperty().setValue("vboRows");
+        achBoard.getChildren().add(vboRows);
+        vboRows.setAlignment(Pos.BOTTOM_CENTER);
+        vboRows.setFillWidth(false);
+        vboRows.setFocusTraversable(true);
+        vboRows.setSpacing(1.0);
+        AnchorPane.setBottomAnchor(vboRows, 140.0);
+        AnchorPane.setLeftAnchor(vboRows, 0.0);
+        AnchorPane.setRightAnchor(vboRows, 0.0);
+        AnchorPane.setTopAnchor(vboRows, 15.0);
 
-        iASwitch = event ->
-            {
-                if (!tbnAiSwitch.isSelected())
-                {
-                    tbnAiSwitch.setText("AI OFF");
-                    mniRowUp.setDisable(false);
-                    mniInitBoard.setDisable(false);
-                    return;
-                }
-                tbnAiSwitch.setText("AI ON");
-                AiCycle.restart();
-                mniRowUp.setDisable(true);
-                mniInitBoard.setDisable(true);
-            };
+        createEvents();
+        vboNextRow.addEventHandler(VBoxRow.CHILDREN_ADDED, rowSlideUp);
         tbnAiSwitch.setOnAction(iASwitch);
-
-        initBoard = event ->
-            {
-                while (vboRows.getChildren().size() < 4)
-                {
-                    genRow();
-                }
-            };
-        lblScore.setText("0");
+        mniRowUp.setOnAction(rowUp);
         mniInitBoard.setOnAction(initBoard);
 
+        aiStateProperty.bindBidirectional(tbnAiSwitch.selectedProperty());
+
+        //BG
+        //cnvGameBG.getGraphicsContext2D().drawImage(new Image(this.getClass().getResourceAsStream("/images/bg4.png")), 0, 0);
+
+        lblScore.setText("0");
+
     }
 
-    public boolean isReady()
+    public void moveTile(final Tile tile, final Integer newIndex)
     {
-        return isReady.get();
+        final Row row = tile.getRow();
+        row.moveTile(tile, newIndex);
     }
 
-    public void moveTile(final Tile tile, final int index)
+    public void reset()
     {
-        final Row row = (Row) tile.getParent();
-        if (row.moveTile(tile, index))
-        {
-            log.info("got here");
-            update();
-            genRow();
-            update();
-        }
-    }
-
-    //ROW MANAGEMENT
-
-    //THREADS STUFF
-    public void notReady()
-    {
-        isReady.set(false);
-    }
-
-    public void removeRow(final Row row)
-    {
-        rows.remove(row);
+        vboNextRow.getChildren().clear();
+        vboRows.getChildren().clear();
+        lblScore.setText("0");
     }
 
     /* MAIN ALGORITHM */
@@ -249,9 +204,8 @@ public class GameController extends Controller
     // 2 - if -> check for a full row ( starting from bottom )
     // 2a true -> remove it then go to step 1
     // 2b false -> end
-    public void update()
+    public void updateRows()
     {
-
         int score = 0;
 
         boolean cycle = true;
@@ -275,19 +229,55 @@ public class GameController extends Controller
 
     }
 
-    private Row createRow()
+    private void createEvents()
     {
-        final Row row = new Row();
-        row.setController(this);
-        vboNextRow.getChildren().add(row);
-        row.fitToParent();
-        final TileGenerator tg = new TileGenerator();
-        tg.genTiles(row);
-        return row;
+        iASwitch = event ->
+            {
+                if (!tbnAiSwitch.isSelected())
+                {
+                    tbnAiSwitch.setText("AI OFF");
+                    return;
+                }
+                tbnAiSwitch.setText("AI ON");
+            };
+
+        rowSlideUp = event ->
+            {
+                if (vboNextRow.getChildrenUnmodifiable().size() > 1)
+                {
+                    final Row row = (Row) vboNextRow.getChildrenUnmodifiable().get(0);
+                    vboRows.getChildren().add(vboRows.getChildren().size(), row);
+                    vboNextRow.getChildren().remove(row);
+                    row.fitToParent();
+                    row.updateTilesCoords();
+                    updateRows();
+                }
+            };
+
+        initBoard = event ->
+            {
+                vboNextRow.getChildren().clear();
+                vboRows.getChildren().clear();
+                while (vboRows.getChildrenUnmodifiable().size() < 5)
+                {
+                    rowUp.handle(null);
+                }
+
+            };
+        rowUp = event ->
+            {
+                final Row row = new Row();
+                row.setGameController(this);
+                tileGenerator.genTiles(row);
+                vboNextRow.addChildren(row);
+                row.updateTilesCoords();
+                row.fitToParent();
+            };
     }
 
     private boolean handleFallingTiles()
     {
+        final ObservableList<Node> rows = vboRows.getChildren();
         boolean falling = false;
         for (int i = rows.size() - 2; i >= 0; --i)
         {
@@ -309,6 +299,8 @@ public class GameController extends Controller
 
     private boolean handleFullRows()
     {
+        final ObservableList<Node> rows = vboRows.getChildren();
+
         for (int i = rows.size() - 1; i >= 0; --i)
         {
             final Row currentRow = (Row) rows.get(i);
@@ -319,13 +311,6 @@ public class GameController extends Controller
             }
         }
         return false;
-    }
-
-    private void reset()
-    {
-        vboNextRow.getChildren().clear();
-        vboRows.getChildren().clear();
-        lblScore.setText("0");
     }
 
 }

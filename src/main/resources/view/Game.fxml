@@ -15,8 +15,6 @@
          </opaqueInsets>
          <children>
             <Canvas fx:id="cnvGameBG" cacheHint="QUALITY" depthTest="DISABLE" focusTraversable="true" height="885.0" mouseTransparent="true" width="544.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="0.0" />
-            <VBox fx:id="vboRows" alignment="BOTTOM_CENTER" fillWidth="false" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" snapToPixel="false" AnchorPane.bottomAnchor="140.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-            <VBox fx:id="vboNextRow" alignment="BASELINE_CENTER" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" snapToPixel="false" spacing="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="812.0" />
          </children>
       </AnchorPane>
       <MenuButton alignment="CENTER_RIGHT" layoutX="430.0" layoutY="27.0" mnemonicParsing="false" popupSide="LEFT" text="Options" textAlignment="CENTER">

@@ -9,7 +9,9 @@ import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class DLVAdapter
 {
 
@@ -55,7 +57,8 @@ public class DLVAdapter
         {
             final OutputStream out = process.getOutputStream();
             final OutputStreamWriter ow = new OutputStreamWriter(out);
-            ow.write(createProgram(rows));
+            final String program = createProgram(rows);
+            ow.write(program);
             ow.close();
         }
         catch (final IOException e)

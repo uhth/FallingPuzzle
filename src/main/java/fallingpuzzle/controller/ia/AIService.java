@@ -30,7 +30,6 @@ public class AIService extends Service<Void>
                 @Override
                 protected Void call() throws Exception
                 {
-                    log.info("{}", "help");
                     while (tbnAiSwitch.isSelected())
                     {
                         if (!gameController.isReady())
@@ -42,9 +41,9 @@ public class AIService extends Service<Void>
                             {
                                 gameController.callAi();
                             });
-                        Thread.sleep(500);
+                        Thread.sleep(50);
                     }
-                    log.info("AI STOP");
+                    log.info("{}", "AI STOP");
                     return null;
                 }
             };

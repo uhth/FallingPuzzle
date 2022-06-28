@@ -23,7 +23,9 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class GameController extends Controller
 {
 
@@ -91,6 +93,10 @@ public class GameController extends Controller
 
     private final AtomicBoolean isReady = new AtomicBoolean(true);
 
+    final DLVAdapter dlvAdapter = new DLVAdapter();
+
+    //IA STUFF
+
     public void addScore(final int score)
     {
         int currentScore = Integer.parseInt(lblScore.getText());
@@ -100,15 +106,14 @@ public class GameController extends Controller
         lblScore.setText(sb.toString());
     }
 
-    //IA STUFF
     public void callAi()
     {
-        final DLVAdapter dlvAdapter = new DLVAdapter();
         final Process dlvProcess = dlvController.startProcess();
         dlvAdapter.streamGridIntoProcess(rows, dlvProcess);
         final TileMove tileMove = dlvController.getTileMoveFromOutput();
         if (tileMove != null)
         {
+            log.info("{} {}", tileMove.getTile(), tileMove.getNewIndex());
             moveTile(tileMove.getTile(), tileMove.getNewIndex());
         }
         isReady.set(true);
@@ -134,6 +139,8 @@ public class GameController extends Controller
                 tile.setSelectable(true);
                 tile.setDraggable(true);
             }
+
+            log.info("genrow");
 
         }
 
@@ -217,6 +224,7 @@ public class GameController extends Controller
         final Row row = (Row) tile.getParent();
         if (row.moveTile(tile, index))
         {
+            log.info("got here");
             update();
             genRow();
             update();
@@ -261,6 +269,7 @@ public class GameController extends Controller
                 cycle = true;
                 ++score;
             }
+            log.info("update");
         }
         addScore(score);
 

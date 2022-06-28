@@ -25,7 +25,9 @@ public class DLVController
 
     Process dlvProcess;
 
-    BufferedReader readerFromProc;
+    BufferedReader outReaderFromProc;
+
+    BufferedReader errReaderFromProc;
 
     File dlvExe;
 
@@ -47,7 +49,9 @@ public class DLVController
         TileMove tileMove = null;
         try
         {
-            tileMove = processOutput(readerFromProc.lines());
+            errReaderFromProc.lines().forEach(error -> log.error("{}", error));
+            tileMove = processOutput(outReaderFromProc.lines());
+            errReaderFromProc.close();
         }
         catch (final IOException e)
         {
@@ -66,7 +70,8 @@ public class DLVController
         try
         {
             dlvProcess = rt.exec(commands);
-            readerFromProc = new BufferedReader(new InputStreamReader(dlvProcess.getInputStream(), Charset.defaultCharset()));
+            outReaderFromProc = new BufferedReader(new InputStreamReader(dlvProcess.getInputStream(), Charset.defaultCharset()));
+            errReaderFromProc = new BufferedReader(new InputStreamReader(dlvProcess.getErrorStream(), Charset.defaultCharset()));
         }
         catch (final IOException e)
         {
@@ -101,7 +106,7 @@ public class DLVController
                 final Pattern pattern = Pattern
                         .compile("(.*)(tileMove\\((?<firstIndex>[0-9]+),(?<newIndex>[0-9]+),(?<rowIndex>[0-9]+)\\))(.*)");
                 final Matcher matcher = pattern.matcher(line);
-
+                log.info("{}", line);
                 while (matcher.find())
                 {
                     info.put("firstIndex", Integer.parseInt(matcher.group("firstIndex")));

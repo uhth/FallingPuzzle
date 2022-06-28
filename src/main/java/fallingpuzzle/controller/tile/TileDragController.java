@@ -1,11 +1,13 @@
 package fallingpuzzle.controller.tile;
 
+import fallingpuzzle.controller.scene.GameController;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import javafx.scene.Node;
 
 public class TileDragController extends DragController {
-
+	
+	
 	public TileDragController( Node target ) {
 		super( target, true );
 	}
@@ -45,7 +47,7 @@ public class TileDragController extends DragController {
             	Row row = ( Row ) tile.getParent();
             	int oldIndex = tile.getFirstIndex();
             	int deltaIndex = 0;
-            	
+            	            	
         		if( absTranslate >= 35 && absTranslate < 106 ) deltaIndex += 1;
         		else if( absTranslate >= 106 && absTranslate < 177 ) deltaIndex += 2;
         		else if( absTranslate >= 177 && absTranslate < 248 ) deltaIndex += 3;
@@ -58,9 +60,11 @@ public class TileDragController extends DragController {
         		oldIndex += deltaIndex;
         		
                 target.setTranslateX( 0 );
-        		
+                
+                GameController gameController = ( row ).getGameController();
+                
         		if( deltaIndex != 0 )
-        			row.moveTile( ( Tile ) target, oldIndex );
+        			gameController.moveTile( ( Tile ) target, oldIndex );
             }
         };
         

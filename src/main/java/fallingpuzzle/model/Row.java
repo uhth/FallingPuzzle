@@ -3,19 +3,19 @@ package fallingpuzzle.model;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import fallingpuzzle.controller.scene.GameController;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 public class Row extends Pane {
 		
-	private RowMediator rowMediator;
+	private GameController gameController;
 	
-	private Row( VBox parent, RowMediator rowMediator ) {
-		setParent( parent );
-		this.rowMediator = rowMediator;
+	public Row() {}
+	
+	public void setController( GameController gameController ) {
+		this.gameController = gameController;
 	}
-	
-	private Row() {}
 	
 	@Override
 	public boolean equals( Object row ) {
@@ -33,19 +33,22 @@ public class Row extends Pane {
 		return false;
 	}
 	
-	public void setParent( VBox parent ) {
-		parent.getChildren().add( this );
+	public void fitToParent() {
+		VBox parent = ( VBox ) this.getParent();
 		this.setMinWidth( parent.getWidth() );
 		this.setMaxWidth( parent.getWidth() );
 		this.setMaxHeight( parent.getHeight() / 10 );
 		this.setMinHeight( parent.getHeight() / 10  );
 		this.setWidth( parent.getWidth() );
 		this.setHeight( parent.getHeight() / 10 );
-		for( int i = 0; i< getChildren().size(); ++i ) {
+		
+		for( int i = 0; i < getChildren().size(); ++i ) {
 			Tile tile = ( Tile ) getChildren().get( i );
 			tile.updateTileSize( this.getWidth() / 8, this.getHeight() );
 		}
-		updateTilesCoords();
+		
+	//	System.out.println( this.getWidth() / 8 );
+
 	}
 	
 	/* Only inserts tiles which can fit inside this row */
@@ -70,16 +73,19 @@ public class Row extends Pane {
 	}
 	
 	/* Used by controller to move a tile */
-	public void moveTile( Tile tile, int index ) {
+	public boolean moveTile( Tile tile, int index ) {
 		int oldIndex = tile.getFirstIndex();
-		if( tilesInBeetween( tile, index ) ) return;
+		if( tilesInBeetween( tile, index ) ) return false;
 		tile.move( index );
 		if( collidesWithOtherTiles( tile ) ) {
 			tile.move( oldIndex );
+			System.out.println("illegal move ");
+			System.out.println( "row: " + gameController.getRowPosition( this ) + " move is: " + oldIndex + " to " + index );
+			return false;
 		}
 		else {
-			rowMediator.update();
-			rowMediator.requestNewRow();
+			System.out.println( "row: " + gameController.getRowPosition( this ) + " move is: " + oldIndex + " to " + index );
+			return true;
 		}
 	}
 		
@@ -161,16 +167,22 @@ public class Row extends Pane {
 		tileToTest.move( trueFirstIndex );
 		return false;
 	}
-		
 	
-	/* F method */
-	public static Row createRow( VBox parent, RowMediator rowMediator ) {
-		Row row = new Row( parent, rowMediator );
-		TileGenerator tg = new TileGenerator();
-		tg.genTiles( row );
-		
-		return row;
-	}	
+	public GameController getGameController() {
+		return gameController;
+	}
+	
+	/* get Tile by Index */
+	public Tile getTile( int index ) {
+		for( int i = 0; i < getChildren().size(); ++i ) {
+			Tile tile = ( Tile ) getChildren().get( i );
+			if( tile.getFirstIndex() == index ) {
+				return tile;
+			}
+		}
+			return null;
+	}
+	
 	
 }
 

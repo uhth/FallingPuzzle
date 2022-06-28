@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -33,6 +32,8 @@ public class MainMenuController extends Controller {
     	return scene;
 	}
     
+    private EventHandler<ActionEvent> gameScene;
+    private EventHandler<ActionEvent> dlvPath;
     
     @FXML
     public void initialize() {
@@ -40,27 +41,21 @@ public class MainMenuController extends Controller {
     	cnvMenuBG.widthProperty().bind( ( (AnchorPane) cnvMenuBG.getParent() ).widthProperty() );
     	cnvMenuBG.heightProperty().bind( ( (AnchorPane) cnvMenuBG.getParent() ).heightProperty() );
     	
-    	btnDLVPATH.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-            	FileChooser fileChooser = new FileChooser();
-            	 fileChooser.setTitle("Open Resource File");
-            	 fileChooser.getExtensionFilters().addAll(
-            	         new ExtensionFilter("DLV", "*.exe") );
-            	 File selectedFile = fileChooser.showOpenDialog( scene.getWindow() );
-            	 if( selectedFile != null ) {
-            		 Setting setting = new Setting( "DLV_PATH", selectedFile.getAbsolutePath() );
-            		 SettingsDAO.insert( setting );
-            	 }
-            }
-        });
+    	dlvPath = event -> { 
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Open Resource File");
+			fileChooser.getExtensionFilters().addAll(
+			        new ExtensionFilter("DLV", "*.exe") );
+			File selectedFile = fileChooser.showOpenDialog( scene.getWindow() );
+			if( selectedFile != null ) {
+				Setting setting = new Setting( "DLV_PATH", selectedFile.getAbsolutePath() );
+				SettingsDAO.insert( setting );
+			 }
+		};
+    	btnDLVPATH.setOnAction( dlvPath );
     	
-    	btnPLAY.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-            	Application.setScene( GameController.getScene() );
-            }
-        }); 
+    	gameScene = event -> { Application.setScene( GameController.getScene() ); };
+    	btnPLAY.setOnAction( gameScene );
     	
     }
        

@@ -1,8 +1,10 @@
 package fallingpuzzle;
-
 import fallingpuzzle.controller.scene.MainMenuController;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class Application extends javafx.application.Application {
 	
@@ -21,8 +23,16 @@ public class Application extends javafx.application.Application {
 		primaryStage.setHeight( 1000 );
 		primaryStage.setResizable( false );
 		primaryStage.show();
+		
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+		       @Override
+		       public void handle(WindowEvent e) {
+		          Platform.exit();
+		          System.exit(0);		       
+		       }
+		    });
 	}
-	
+		
 	public static void setScene( Scene scene ) {
 		if( primaryStage == null ) return;
 		primaryStage.setScene( scene );

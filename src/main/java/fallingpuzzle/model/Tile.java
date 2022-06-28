@@ -88,7 +88,7 @@ public class Tile extends Rectangle {
 	public void move( int index ) {
 		this.firstIndex.set( index );
 	}
-	
+		
 	private void resize() {
 		this.setWidth( ( baseWidth * nCell ) - 2 );
 		this.setHeight( baseHeight - 2 );

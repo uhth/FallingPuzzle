@@ -30,6 +30,7 @@ public class DLVFileBuilder {
 		}
 	}
 	
+	//MAIN BUILDING CHAIN
 	public String createProgram( ObservableList<Node> rows ) {
 		StringBuilder sb = new StringBuilder();
 		
@@ -39,10 +40,20 @@ public class DLVFileBuilder {
 			sb.append( convertRowIntoRules( row, i ) );
 		}
 		
+		sb.append( createIndexes( rows.size() - 1 ) ); //indexes
+		
 		//RULES
-		sb.append( createTileSizeRule() );
+		sb.append( createTileMoveRule() ); //guess
+		sb.append( createTileSizeRule() ); 
 		sb.append( createTileFallRule() );
-
+		sb.append( createOccupiedIndexesRow() );
+		
+		//STRONG CONSTRAINTS
+		sb.append( createStrongConstraints() );
+		
+		//QUERY
+	//	sb.append( createQuery() );
+		
 		
 		return sb.toString();
 	}
@@ -59,14 +70,71 @@ public class DLVFileBuilder {
 		return sb.toString();
 	}
 	
-	//Create tileSize rule
-	private String createTileSizeRule() {
-		return "\ntileSize( X, Size, R ):- tile( X, Y, R ), #count{ X, I : tile( X, I, R ) } = Size.";
+	//Create indexes
+	private String createIndexes( int size) {
+		return "\n" + "index(0.." + size + ").";
 	}
 	
-	//Create tailFall rule
+	//Create tileSize rule - tileSize( firstIndex, #indexes, row )
+	private String createTileSizeRule() {
+		return "\n" + "tileSize( X, Size, R ) :- tile( X, Y, R ), #count{ X, I : tile( X, I, R ) } = Size.";
+	}
+	
+	//Create tailFall rule <-- TODO
 	private String createTileFallRule() {
-		return "\n";
+		return "\n" + "";
+	}
+	
+	//create occupiedIndexesRow rule
+	private String createOccupiedIndexesRow() {
+		return "\n" + "occupiedIndexesRow( I, R ) :- tile( X, I, R ).";
+	}
+	
+	//Create tailFall rule <-- TODO  - tileMove( firstIndex, newIndex, row );
+	private String createTileMoveRule() {
+		return "\n" + "tileMove( X, Y, R ) | nTileMove( X, Y, R ) :-"
+				+ " tile( X, _, R ),"
+				+ " index( Y ),"
+				+ " X != Y.";
+	}
+		
+	//Create strong constraints
+	private String createStrongConstraints() {
+		StringBuilder sb = new StringBuilder();
+		sb.append( "\n" + "nTileMoves( S ) :- #count{ X, Y, R : tileMove( X, Y, R ) } = S." );
+		sb.append( "\n" + ":- nTileMoves( S ), S != 1." ); //shall be 1 move
+		
+		sb.append( "\n" + ":- tileMove( X, Y, R )," //no tiles already there
+				+ " tile( Z, Y, R )." );
+
+		sb.append( "\n" + ":- tileMove( X, Y, R )," //no tiles in between <- left
+				+ " tile( Z, K, R ),"
+				+ " K > Y,"
+				+ " K < X,"
+				+ " Y < X." );
+		
+		sb.append( "\n" + ":- tileMove( X, Y, R )," //no tiles in between -> right
+				+ " tile( Z, K, R ),"
+				+ " K < Y,"
+				+ " K > X,"
+				+ " Y > X." );
+		
+		sb.append( "\n" + ":- tileMove( X, Y, R )," //no tiles colliding -> right
+				+ " tile( Z, K, R ),"
+				+ " tileSize( X, S, R ),"
+				+ " L = Y + S,"
+				+ " K > Y,"
+				+ " K < L,"
+				+ " Y > X." );
+				
+		
+		return sb.toString();
+	}
+	
+	//create query tileMove( X, Y, R )?
+	@SuppressWarnings("unused")
+	private String createQuery() {
+		return "\n" + "tileMove( X, Y, R )?";
 	}
 	
 }

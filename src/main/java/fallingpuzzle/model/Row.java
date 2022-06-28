@@ -1,7 +1,6 @@
 package fallingpuzzle.model;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import fallingpuzzle.controller.scene.GameController;
@@ -203,17 +202,10 @@ public class Row extends Pane
                 unavailableIndexes.addAll(tile.getIndexes());
             }
         }
-        unavailableIndexes.sort(new Comparator<Integer>()
-            {
-                @Override
-                public int compare(final Integer o1, final Integer o2)
-                {
-                    final int res = o1 > o2 ? o1 : o2;
-                    return res;
-                }
-            });
+        unavailableIndexes.sort((o1, o2) -> o1 > o2 ? o1 : o2);
         //case mockIndex < realIndex -> test mockIndex + tile size + 1
         if (mockIndex < realIndex)
+
         {
             for (int i = mockIndex + tileToTest.getIndexes().size() + 1; i < realIndex; ++i)
             {

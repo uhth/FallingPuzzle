@@ -32,7 +32,7 @@ public class SettingsDAO
             final ResultSet rs = statement.executeQuery(sql);
             while (rs.next())
             {
-                final Setting setting = new Setting(rs.getString(0), rs.getString(1));
+                final Setting setting = new Setting(rs.getString(1), rs.getString(2));
                 settings.add(setting);
             }
         }
@@ -83,9 +83,8 @@ public class SettingsDAO
 
     private static void createTable()
     {
-        try
+        try (Statement statement = DatabaseManager.getConnection().createStatement())
         {
-            final Statement statement = DatabaseManager.getConnection().createStatement();
             final String sql = "create table if not exists" + " Settings(" + " name varchar(255) primary key,"
                     + " value varchar(255) ); ";
             statement.executeUpdate(sql);

@@ -15,7 +15,9 @@ import fallingpuzzle.controller.scene.GameController;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import fallingpuzzle.model.TileMove;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class DLVController
 {
 

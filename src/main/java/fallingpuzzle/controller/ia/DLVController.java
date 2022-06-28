@@ -86,6 +86,7 @@ public class DLVController
             });
         if (files == null || files.length == 0)
         {
+            log.error("{}", "PUT DLV*.EXE INSIDE /resources/dlv");
             throw new FileNotFoundException("MISSING DLV2 EXECUTABLE");
         }
         dlvExe = files[0];

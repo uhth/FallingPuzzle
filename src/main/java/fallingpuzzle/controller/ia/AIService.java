@@ -5,7 +5,9 @@ import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.control.ToggleButton;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class AIService extends Service<Void>
 {
 
@@ -28,7 +30,7 @@ public class AIService extends Service<Void>
                 @Override
                 protected Void call() throws Exception
                 {
-                    System.out.println("AI RUNNING:");
+                    log.info("{}", "help");
                     while (tbnAiSwitch.isSelected())
                     {
                         if (!gameController.isReady())
@@ -42,7 +44,7 @@ public class AIService extends Service<Void>
                             });
                         Thread.sleep(500);
                     }
-                    System.out.println("AI STOP");
+                    log.info("AI STOP");
                     return null;
                 }
             };

@@ -14,6 +14,7 @@ import fallingpuzzle.model.Tile;
 import fallingpuzzle.model.TileGenerator;
 import fallingpuzzle.model.TileMove;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -25,7 +26,9 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
 import lombok.extern.log4j.Log4j2;
@@ -71,13 +74,24 @@ public class GameController extends Controller
     private Canvas cnvGameBG;
 
     @FXML
+    private Slider sldAiLantecy;
+
+    @FXML
     private MenuItem mniInitBoard;
+
+    @FXML
+    private MenuButton mnbOptions;
 
     @FXML
     private MenuItem mniRowUp;
 
     @FXML
+    private Label lblSlider;
+
+    @FXML
     private Label lblScore;
+
+    private MenuItem mniCallAi;
 
     @FXML
     private ToggleButton tbnAiSwitch;
@@ -113,7 +127,6 @@ public class GameController extends Controller
 
     public void callAi()
     {
-
         final Process dlvProcess = dlvController.startProcess();
         dlvAdapter.streamGridIntoProcess(vboRows.getChildrenUnmodifiable(), dlvProcess);
         final TileMove tileMove = dlvController.getTileMoveFromOutput();
@@ -122,9 +135,15 @@ public class GameController extends Controller
             final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
             row.moveTile(tileMove.getTile(), newIndex);
-            rowUp.handle(null);
+            //rowUp.handle(null);
             updateRows(true);
         }
+
+    }
+
+    public DoubleProperty getAiSliderValueProperty()
+    {
+        return sldAiLantecy.valueProperty();
     }
 
     public BooleanProperty getAiStateProperty()
@@ -193,8 +212,15 @@ public class GameController extends Controller
         //BG
         //cnvGameBG.getGraphicsContext2D().drawImage(new Image(this.getClass().getResourceAsStream("/images/bg4.png")), 0, 0);
 
+        mniCallAi = new MenuItem();
+        mnbOptions.getItems().add(mniCallAi);
+        mniCallAi.setText("AI once");
+        mniCallAi.setOnAction(event -> callAi());
+
         lblScore.setText("0");
         vboRows.requestFocus();
+        sldAiLantecy.valueProperty().addListener((a, b, c) -> lblSlider.setText("" + c.intValue()));
+        lblSlider.setText("" + sldAiLantecy.valueProperty().intValue());
 
     }
 
@@ -239,7 +265,6 @@ public class GameController extends Controller
                 cycle = true;
                 ++score;
             }
-            log.info("update");
         }
         if (addScore)
         {
@@ -302,6 +327,7 @@ public class GameController extends Controller
     {
         final ObservableList<Node> rows = vboRows.getChildren();
         final AtomicBoolean falling = new AtomicBoolean(false);
+        log.info("looping falling tiles");
         for (int i = rows.size() - 2; i >= 0; --i)
         {
             final List<Node> tilesToInsert = new ArrayList<>();
@@ -330,6 +356,7 @@ public class GameController extends Controller
         final ObservableList<Node> rows = vboRows.getChildren();
         final List<Node> rowsToRemove = new ArrayList<>();
         boolean value = false;
+        log.info("looping full tiles");
         for (int i = rows.size() - 1; i >= 0; --i)
         {
             final Row currentRow = (Row) rows.get(i);

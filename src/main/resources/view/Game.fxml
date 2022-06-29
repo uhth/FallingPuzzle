@@ -17,7 +17,7 @@
             <Canvas fx:id="cnvGameBG" cacheHint="QUALITY" depthTest="DISABLE" focusTraversable="true" height="885.0" mouseTransparent="true" width="544.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="0.0" />
          </children>
       </AnchorPane>
-      <MenuButton alignment="CENTER_RIGHT" layoutX="430.0" layoutY="27.0" mnemonicParsing="false" popupSide="LEFT" text="Options" textAlignment="CENTER">
+      <MenuButton fx:id="mnbOptions" alignment="CENTER_RIGHT" layoutX="500.0" layoutY="27.0" mnemonicParsing="false" popupSide="LEFT" text="Options" textAlignment="CENTER">
         <items>
           <MenuItem fx:id="mniRowUp" mnemonicParsing="false" text="Row UP" />
           <MenuItem fx:id="mniInitBoard" mnemonicParsing="false" text="Init Board" />
@@ -38,6 +38,9 @@
             <Font name="Forte" size="26.0" />
          </font>
       </Label>
-      <ToggleButton fx:id="tbnAiSwitch" contentDisplay="CENTER" layoutX="514.0" layoutY="27.0" mnemonicParsing="false" text="AI OFF" textAlignment="CENTER" />
+      <ToggleButton fx:id="tbnAiSwitch" contentDisplay="CENTER" layoutX="389.0" layoutY="28.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="85.0" text="AI OFF" textAlignment="CENTER" />
+      <Slider fx:id="sldAiLantecy" blockIncrement="50.0" layoutX="458.0" layoutY="62.0" majorTickUnit="100.0" max="1000.0" min="20.0" minorTickCount="100" prefHeight="14.0" prefWidth="93.0" snapToTicks="true" value="500.0" />
+      <Label alignment="CENTER" layoutX="389.0" layoutY="57.0" prefHeight="25.0" prefWidth="57.0" text="AI latency" />
+      <Label fx:id="lblSlider" layoutX="553.0" layoutY="64.0" />
    </children>
 </AnchorPane>

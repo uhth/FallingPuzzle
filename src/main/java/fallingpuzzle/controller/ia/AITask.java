@@ -26,7 +26,7 @@ public class AITask extends Task<Object>
                     Platform.runLater(() -> gc.callAi());
                     // Platform.runLater(() -> gc.initBoard());
                 }
-                Thread.sleep(50);
+                Thread.sleep(gc.getAiSliderValueProperty().longValue());
             }
         }
         catch (final Exception e)

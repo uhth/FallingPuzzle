@@ -31,9 +31,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
-import lombok.extern.log4j.Log4j2;
 
-@Log4j2
 public class GameController extends Controller
 {
 

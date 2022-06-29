@@ -3,7 +3,9 @@ package fallingpuzzle.controller.ia;
 import fallingpuzzle.controller.scene.GameController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class AITask extends Task<Object>
 {
 
@@ -23,6 +25,12 @@ public class AITask extends Task<Object>
             {
                 if (Boolean.TRUE.equals(gc.getAiStateProperty().get()))
                 {
+                    if (!gc.readyForAi.get())
+                    {
+                        continue;
+                    }
+                    gc.readyForAi.set(false);
+                    log.info("{}", "Thread is calling CALLAI()");
                     Platform.runLater(() -> gc.callAi());
                     // Platform.runLater(() -> gc.initBoard());
                 }

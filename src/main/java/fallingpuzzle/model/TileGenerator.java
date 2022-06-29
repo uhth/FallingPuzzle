@@ -25,7 +25,7 @@ public class TileGenerator
                 index = random.nextInt(6);
                 size = random.nextInt(3) + 1;
                 tile = new Tile(index, size, row.getWidth() / 8, tileHeight);
-                log.info("index: {} size: {} collides: {}", index, size, row.collidesWithOtherTiles(tile));
+                //log.info("index: {} size: {} collides: {}", index, size, row.collidesWithOtherTiles(tile));
             }
             while (row.collidesWithOtherTiles(tile) && counter++ <= 10);
 

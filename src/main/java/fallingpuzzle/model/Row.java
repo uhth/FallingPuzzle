@@ -6,7 +6,6 @@ import java.util.List;
 import fallingpuzzle.controller.scene.GameController;
 import fallingpuzzle.controller.scene.VBoxRow;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -41,7 +40,7 @@ public class Row extends Pane
         {
             if (unavailableIndexes.contains(tileToTest.getIndexes().get(i)) || i < 0 || i > 7)
             {
-                log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
+                // log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
                 return true;
             }
         }
@@ -86,16 +85,23 @@ public class Row extends Pane
         return false;
     }
 
-    public void fitToParent()
+    public void fitToParent(final VBoxRow parent)
     {
-        final VBox parent = (VBoxRow) getParent();
         setMinWidth(parent.getWidth());
         setMaxWidth(parent.getWidth());
-        setMaxHeight(parent.getHeight() / 10);
-        setMinHeight(parent.getHeight() / 10);
         setWidth(parent.getWidth());
-        setHeight(parent.getHeight() / 10);
-
+        if (parent.getId().equals("vboNextRow"))
+        {
+            setMinHeight(parent.getHeight());
+            setHeight(parent.getHeight());
+            setMaxHeight(parent.getHeight());
+        }
+        else
+        {
+            setMinHeight(parent.getHeight() / 10);
+            setHeight(parent.getHeight() / 10);
+            setMaxHeight(parent.getHeight() / 10);
+        }
         for (int i = 0; i < getChildren().size(); ++i)
         {
             final Tile tile = (Tile) getChildren().get(i);

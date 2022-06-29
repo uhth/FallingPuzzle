@@ -114,6 +114,8 @@ public class GameController extends Controller
 
     private DLVAdapter dlvAdapter;
 
+    public AtomicBoolean readyForAi = new AtomicBoolean(true);
+
     //IA STUFF
 
     public void addScore(final int score)
@@ -135,10 +137,10 @@ public class GameController extends Controller
             final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
             row.moveTile(tileMove.getTile(), newIndex);
-            //rowUp.handle(null);
+            rowUp();
             updateRows(true);
         }
-
+        readyForAi.set(true);
     }
 
     public DoubleProperty getAiSliderValueProperty()
@@ -182,10 +184,12 @@ public class GameController extends Controller
         vboNextRow.setAlignment(Pos.BASELINE_CENTER);
         vboNextRow.setFocusTraversable(true);
         vboNextRow.setSpacing(1.0);
-        AnchorPane.setBottomAnchor(vboNextRow, 0.0);
+        vboNextRow.setMinHeight(73.0);
+        vboNextRow.setMaxHeight(73.0);
+        AnchorPane.setBottomAnchor(vboNextRow, 50.0);
         AnchorPane.setLeftAnchor(vboNextRow, 0.0);
         AnchorPane.setRightAnchor(vboNextRow, 0.0);
-        AnchorPane.setTopAnchor(vboNextRow, 812.0);
+        AnchorPane.setTopAnchor(vboNextRow, 730.0); //812
 
         vboRows = new VBoxRow();
         vboRows.idProperty().setValue("vboRows");
@@ -231,9 +235,19 @@ public class GameController extends Controller
 
     public void reset()
     {
-        vboNextRow.getChildren().clear();
-        vboRows.getChildren().clear();
-        lblScore.setText("0");
+        try
+        {
+            vboNextRow.getChildren().clear();
+            vboRows.getChildren().clear();
+            initBoard();
+            lblScore.setText("0");
+        }
+        catch (final Exception e)
+        {
+            e.printStackTrace();
+            aiService.restart();
+            throw e;
+        }
     }
 
     public void rowUp()
@@ -292,7 +306,7 @@ public class GameController extends Controller
                     final Row row = (Row) vboNextRow.getChildrenUnmodifiable().get(0);
                     vboRows.getChildren().add(vboRows.getChildren().size(), row);
                     vboNextRow.getChildren().remove(row);
-                    row.fitToParent();
+                    row.fitToParent(vboRows);
                     row.updateTilesCoords();
                 }
             };
@@ -310,16 +324,25 @@ public class GameController extends Controller
             };
         rowUp = event ->
             {
-                final Row row = new Row();
-                row.setGameController(this);
-                tileGenerator.genTiles(row);
-                vboNextRow.addChildren(row);
-                row.updateTilesCoords();
-                if (!row.getChildren().isEmpty())
+                try
                 {
-                    row.fitToParent();
+                    if (vboRows.getChildren().size() > 9)
+                    {
+                        reset();
+                    }
+                    final Row row = new Row();
+                    row.setGameController(this);
+                    tileGenerator.genTiles(row);
+                    vboNextRow.addChildren(row);
+                    row.updateTilesCoords();
+                    row.fitToParent(vboNextRow);
+                    row.updateTilesCoords();
+                    updateRows(false);
                 }
-                updateRows(false);
+                catch (final Exception e)
+                {
+                    e.printStackTrace();
+                }
             };
     }
 
@@ -327,7 +350,6 @@ public class GameController extends Controller
     {
         final ObservableList<Node> rows = vboRows.getChildren();
         final AtomicBoolean falling = new AtomicBoolean(false);
-        log.info("looping falling tiles");
         for (int i = rows.size() - 2; i >= 0; --i)
         {
             final List<Node> tilesToInsert = new ArrayList<>();
@@ -353,20 +375,28 @@ public class GameController extends Controller
 
     private boolean handleFullRows()
     {
-        final ObservableList<Node> rows = vboRows.getChildren();
-        final List<Node> rowsToRemove = new ArrayList<>();
         boolean value = false;
-        log.info("looping full tiles");
-        for (int i = rows.size() - 1; i >= 0; --i)
+        try
         {
-            final Row currentRow = (Row) rows.get(i);
-            if (currentRow.isFull())
+            final ObservableList<Node> rows = vboRows.getChildren();
+            final List<Node> rowsToRemove = new ArrayList<>();
+            for (int i = rows.size() - 1; i >= 0; --i)
             {
-                rowsToRemove.add(currentRow);
-                value = true;
+                final Row currentRow = (Row) rows.get(i);
+                if (currentRow.isFull())
+                {
+                    rowsToRemove.add(currentRow);
+                    value = true;
+                }
             }
+            rowsToRemove.forEach(rows::remove);
         }
-        rowsToRemove.forEach(node -> rows.remove(node));
+        catch (
+
+        final Exception e)
+        {
+            e.printStackTrace();
+        }
         return value;
     }
 

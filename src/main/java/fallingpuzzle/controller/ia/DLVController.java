@@ -49,9 +49,11 @@ public class DLVController
         TileMove tileMove = null;
         try
         {
-            errReaderFromProc.lines().forEach(error -> log.error("{}", error));
             tileMove = processOutput(outReaderFromProc.lines());
+            errReaderFromProc.lines().forEach(error -> log.error("{}", error));
+            outReaderFromProc.close();
             errReaderFromProc.close();
+
         }
         catch (final IOException e)
         {

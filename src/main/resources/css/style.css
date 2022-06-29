@@ -1,0 +1,255 @@
+
+/*
+ * GENERAL STYLING HERE 
+ */
+
+.button {
+    -fx-padding: 8 15 15 15;
+    -fx-background-insets: 0, 0 0 5 0, 0 0 6 0, 0 0 7 0;
+    -fx-background-radius: 8;
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #c31843 0%, #c31843 100%),
+        #9e0000,
+      	#9e0000,
+        radial-gradient(center 50% 50%, radius 100%, #cc0000, #9e0000);
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.75) , 4,0,0,1 );
+}
+
+.button .text {
+	-fx-font-family: "Forte";
+    -fx-font-size: 1.9em;
+    -fx-fill: radial-gradient(center 50% 50%, radius 260%, snow, red );
+}
+
+.button:hover {
+    -fx-background-color: 
+        linear-gradient(from 0% 93% to 0% 100%, #ff4169 0%, #b80f63 100%),
+        #9e0000, 
+        #9e0000,
+        radial-gradient(center 50% 50%, radius 100%, #ff415a, #ff415a);
+}
+
+.button:pressed {
+    -fx-padding: 10 15 13 15;
+    -fx-background-insets: 2 0 0 0, 2 0 3 0, 2 0 4 0, 2 0 5 0;
+}
+
+.viewport {
+	-fx-background-color: transparent;
+}
+
+
+.scroll-pane {
+	-fx-background-color: rgba( 255, 255, 255, 0.1 );
+    -fx-background-radius: 1;
+
+}
+
+.scroll-bar .increment-button, .decrement-button {
+    -fx-background-color :transparent;
+    -fx-background-radius : 0.0em;
+    -fx-padding :0.0 10.0 0.0 0.0;
+}
+
+.scroll-bar .increment-arrow, .decrement-arrow {
+    -fx-shape : " ";    
+    -fx-padding : -10 0 0.15em 0.0;
+}
+
+.scroll-bar .track {
+    -fx-background-color : radial-gradient(center 50% 50%, radius 100%, black, gray );
+    -fx-background-radius : 0.0em;
+    -fx-padding :0.0 10.0 0.0 0.0;
+    -fx-border-radius :2.0em;
+}
+
+.scroll-bar .thumb {
+	    -fx-background-color: black;
+}
+
+.radio-button {
+	-fx-font-family: "Forte";
+    -fx-font-size: 1.2em;
+	-fx-text-fill: radial-gradient(center 50% 50%, radius 100%, red, orange );
+}
+
+.slider .track {
+    -fx-background-color: transparent;
+}
+
+.slider .thumb {
+    -fx-pref-height: 5;
+    -fx-pref-width: 5;
+    -fx-shape: " ";
+}
+
+
+
+.dialog-pane {
+    -fx-background-color: white;
+}
+
+
+.dialog-pane .label {
+	-fx-font-family: "Arial";
+    -fx-font-size: 1.9em;
+    -fx-text-fill: black;
+}
+
+.dialog-pane .button .text {
+	-fx-font-family: "Forte";
+    -fx-font-size: 1.9em;
+    -fx-fill: radial-gradient(center 50% 50%, radius 260%, snow, red );
+}
+
+
+.dialog-pane:header .header-panel {
+    -fx-background-color: white;
+}
+
+.dialog-pane:header .header-panel .label {
+    -fx-font-family: "Forte";
+    -fx-text-fill: red;
+    -fx-font-size: 2.5em;
+}
+
+
+/* 
+ * GAME SCENE STUFF
+*/
+ 
+#gameTimerLabel, #scoreLabel {
+	-fx-font-family: "Forte";
+    -fx-font-size: 5.0em;
+	-fx-text-fill: radial-gradient(center 50% 50%, radius 60%, red, orange );
+}
+
+#initialTimerLabel, #scoreLabelGO {
+	-fx-text-fill: radial-gradient(center 50% 50%, radius 100%, red, orange );
+}
+
+#gameOverLabel {
+	-fx-text-fill: radial-gradient(center 50% 50%, radius 100%, white, blue );
+}
+
+#gameMultiplierNLabel {
+	-fx-font-family: "Forte";
+    -fx-font-size: 4.5em;
+}
+
+#gameMultiplierLabel {
+	-fx-font-family: "Forte";
+    -fx-font-size: 4.0em;
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 100%, white, blue );
+}
+
+
+/*
+ * MAIN MENU SCENE STUFF
+*/
+
+#menuTitleLabel {
+	-fx-font-family: "Forte";
+    -fx-font-size: 9.0em;
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 260%, snow, blue);
+	-fx-padding: -50 0 0 0;
+	-fx-effect: dropshadow(gaussian, black, 1.5, 0.8, 2, 2 );
+}
+
+/*
+ * HIGHSCORES SCENE STUFF
+*/
+
+#scoresGridPaneTitle {
+	-fx-background-color: rgba( 255, 255, 255, 0.6 );
+}
+
+#scoresGridPane {
+	-fx-background-color: rgba( 255, 255, 255, 0.3 );
+}
+
+#scoresGridPane .label {
+	-fx-padding: 15 0 15 20;
+}
+
+#scoresGridPane .text {
+	-fx-fill: white;
+	-fx-effect: dropshadow(gaussian, black, 3, 0.9, 1, 1 );
+	-fx-font-family: "Forte";
+    -fx-font-size: 2.0em;
+}
+
+#scoresNameLabel .text, #scoresScoreLabel .text {
+	-fx-fill: red;
+	-fx-effect: dropshadow(gaussian, black, 3, 0.9, 1, 1 );
+	-fx-font-family: "Forte";
+    -fx-font-size: 2.7em;
+}
+
+
+#scoresLabel, #scoresOrderByLabel {
+	-fx-font-family: "Forte";
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 160%, red, blue );
+    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 3, 5);
+}
+
+
+#scoresResetButton .text {
+    -fx-font-size: 1.6em;
+}
+
+
+/*
+ * CREDITS SCENE STUFF
+*/
+
+#creditsTextArea {
+	-fx-background-color: transparent;
+	-fx-font-family: "Forte";
+    -fx-font-size: 1.7em;
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 100%, snow, white );
+	-fx-effect: dropshadow(gaussian, black, 3, 0.9, 1, 1 );
+}
+
+#creditsTextArea .content, .scroll-pane {
+	-fx-background-color: transparent;
+}
+
+#creditsLabel {
+	-fx-font-family: "Forte";
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 160%, red, blue );
+    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 3, 5);
+}
+
+#creditsStackPane {
+	-fx-background-color: transparent;
+}
+
+
+/*
+ * SETTINGS SCENE STUFF
+*/
+
+#settingsLabel {
+	-fx-font-family: "Forte";
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 160%, red, blue );
+    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 3, 5);
+}
+
+
+
+#settingsEffectsVolumeLabel, #settingsMusicVolumeLabel {
+	-fx-font-family: "Forte";
+	-fx-font-size: 2.0em;
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 160%, snow, blue );
+    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 3, 5);
+}
+
+#settingsMusicVolumeNLabel, #settingsEffectsVolumeNLabel {
+	-fx-font-family: "Forte";
+	-fx-font-size: 1.8em;
+    -fx-text-fill: radial-gradient(center 50% 50%, radius 160%, snow, blue );
+    -fx-effect: dropshadow(gaussian, black, 5, 0.5, 3, 5);
+}
+
+

@@ -91,6 +91,9 @@ public class GameController extends Controller
     @FXML
     private Label lblScore;
 
+    @FXML
+    private AnchorPane achRoot;
+
     private MenuItem mniCallAi;
 
     @FXML
@@ -137,7 +140,7 @@ public class GameController extends Controller
             final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
             row.moveTile(tileMove.getTile(), newIndex);
-            rowUp();
+            rowUp(true);
             updateRows(true);
         }
         readyForAi.set(true);
@@ -177,6 +180,8 @@ public class GameController extends Controller
         aiStateProperty = new SimpleBooleanProperty(false);
         aiService = new AIService(this);
         aiService.start();
+
+        //   achRoot.getStylesheets().add(getClass().getResource("/css/style.css").toString());
 
         vboNextRow = new VBoxRow();
         vboNextRow.idProperty().setValue("vboNextRow");
@@ -250,9 +255,27 @@ public class GameController extends Controller
         }
     }
 
-    public void rowUp()
+    public void rowUp(final boolean score)
     {
-        rowUp.handle(null);
+        try
+        {
+            if (vboRows.getChildren().size() > 9)
+            {
+                reset();
+            }
+            final Row row = new Row();
+            row.setGameController(this);
+            tileGenerator.genTiles(row);
+            vboNextRow.addChildren(row);
+            row.updateTilesCoords();
+            row.fitToParent(vboNextRow);
+            row.updateTilesCoords();
+            updateRows(score);
+        }
+        catch (final Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     /* MAIN ALGORITHM */
@@ -322,28 +345,7 @@ public class GameController extends Controller
                 }
 
             };
-        rowUp = event ->
-            {
-                try
-                {
-                    if (vboRows.getChildren().size() > 9)
-                    {
-                        reset();
-                    }
-                    final Row row = new Row();
-                    row.setGameController(this);
-                    tileGenerator.genTiles(row);
-                    vboNextRow.addChildren(row);
-                    row.updateTilesCoords();
-                    row.fitToParent(vboNextRow);
-                    row.updateTilesCoords();
-                    updateRows(false);
-                }
-                catch (final Exception e)
-                {
-                    e.printStackTrace();
-                }
-            };
+        rowUp = event -> rowUp(false);
     }
 
     private boolean handleFallingTiles()

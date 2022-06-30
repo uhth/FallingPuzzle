@@ -108,7 +108,6 @@ public class DLVController
                 final Pattern pattern = Pattern
                         .compile("(.*)(tileMove\\((?<firstIndex>[0-9]+),(?<newIndex>[0-9]+),(?<rowIndex>[0-9]+)\\))(.*)");
                 final Matcher matcher = pattern.matcher(line);
-                log.info("{}", line);
                 while (matcher.find())
                 {
                     info.put("firstIndex", Integer.parseInt(matcher.group("firstIndex")));

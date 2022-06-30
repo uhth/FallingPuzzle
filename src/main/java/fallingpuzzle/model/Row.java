@@ -40,7 +40,7 @@ public class Row extends Pane
         {
             if (unavailableIndexes.contains(tileToTest.getIndexes().get(i)) || i < 0 || i > 7)
             {
-                // log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
+                //  log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
                 return true;
             }
         }
@@ -173,7 +173,7 @@ public class Row extends Pane
         final int oldIndex = tile.getFirstIndex();
         if (tilesInBeetween(tile, index))
         {
-            log.info("{}", "ILLEGAL MOVE");
+            log.info(" ILLEGAL MOVE -> row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
             return false;
         }
         tile.move(index);

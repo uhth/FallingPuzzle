@@ -21,6 +21,7 @@ import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -31,7 +32,13 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class GameController extends Controller
 {
 
@@ -137,9 +144,21 @@ public class GameController extends Controller
         {
             final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
-            row.moveTile(tileMove.getTile(), newIndex);
-            rowUp(true);
-            updateRows(true);
+            if (row.moveTile(tileMove.getTile(), newIndex))
+            {
+                rowUp(true);
+                updateRows(true);
+            }
+            else
+            {
+                tileMove.getTile().setFill(Color.GREEN);
+                final BackgroundFill[] bgFills = new BackgroundFill[1];
+                bgFills[0] = new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY);
+                final Background bg = new Background(bgFills);
+                row.setBackground(bg);
+                log.warn("tile: {}, indexes: {}", tileMove.getTile(), tileMove.getTile().getIndexes());
+                tbnAiSwitch.fire();
+            }
         }
         readyForAi.set(true);
     }
@@ -290,9 +309,12 @@ public class GameController extends Controller
         {
             cycle = false;
             //step 1
-            while (handleFallingTiles())
+            boolean fallingTiles = false;
+            do
             {
+                fallingTiles = handleFallingTiles();
             }
+            while (fallingTiles);
 
             //step 2
             if (handleFullRows())
@@ -324,11 +346,18 @@ public class GameController extends Controller
             {
                 if (vboNextRow.getChildrenUnmodifiable().size() > 1)
                 {
-                    final Row row = (Row) vboNextRow.getChildrenUnmodifiable().get(0);
-                    vboRows.getChildren().add(vboRows.getChildren().size(), row);
-                    vboNextRow.getChildren().remove(row);
-                    row.fitToParent(vboRows);
-                    row.updateTilesCoords();
+                    try
+                    {
+                        final Row row = (Row) vboNextRow.getChildrenUnmodifiable().get(0);
+                        vboRows.getChildren().add(row);
+                        vboNextRow.getChildren().remove(row);
+                        row.fitToParent(vboRows);
+                        row.updateTilesCoords();
+                    }
+                    catch (final Exception e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
             };
 
@@ -389,7 +418,7 @@ public class GameController extends Controller
                     value = true;
                 }
             }
-            rowsToRemove.forEach(rows::remove);
+            rows.removeAll(rowsToRemove);
         }
         catch (
 

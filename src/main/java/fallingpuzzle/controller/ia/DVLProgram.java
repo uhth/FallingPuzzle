@@ -20,13 +20,9 @@ public interface DVLProgram
         program.append(createTileMoveRule()); //guess
         program.append(createTileSizeRule());
         program.append(createTileFallRule());
-        program.append(createOccupiedIndexesRow());
 
         //STRONG CONSTRAINTS
         program.append(createStrongConstraints());
-
-        //QUERY
-        //  program.append( createQuery() );
 
         return program.toString();
     }
@@ -52,19 +48,6 @@ public interface DVLProgram
         return "\n" + "index(0.." + size + ").";
     }
 
-    //create occupiedIndexesRow rule
-    private String createOccupiedIndexesRow()
-    {
-        return "\n" + "occupiedIndexesRow( T, I, R ) :- tile( T, I, R ).";
-    }
-
-    //create query tileMove( X, Y, R )?
-    @SuppressWarnings("unused")
-    private String createQuery()
-    {
-        return "\n" + "tileMove( X, Y, R )?";
-    }
-
     //Create strong constraints
     private String createStrongConstraints()
     {
@@ -81,8 +64,8 @@ public interface DVLProgram
         program.append("\n" + ":- tileMove( X, Y, R )," //no tiles in between -> right
                 + " tile( Z, K, R )," + " K < Y," + " K > X," + " Y > X.");
 
-        program.append("\n" + ":- tileMove( X, Y, R )," //no tiles colliding -> right
-                + " tile( Z, K, R )," + " tileSize( X, S, R )," + " L = Y + S," + " K > Y," + " K < L," + " Y > X.");
+        program.append("\n" + ":- tileMove( X, Y, R )," //no tiles in between -> right
+                + " tile( Z, K, R )," + " K < Y," + " K > X," + " Y > X.");
 
         return program.toString();
     }

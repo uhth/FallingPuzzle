@@ -38,7 +38,7 @@ public class Row extends Pane
         }
         if (getChildren().contains(tile))
         {
-            throw new DuplicateTileException("Tile: " + tile.toString() + " already belongs to this row");
+            throw new DuplicateTileException(tile.toString() + " already belongs to this row");
         }
         if (isOutOfBorder(tile.getFirstIndex(), tile.getSize()))
         {
@@ -61,11 +61,12 @@ public class Row extends Pane
             throws UnavailableIndexException
     {
 
-        log.info("starting index={} destinatnion index={}", startingIndex, destinationIndex);
+        log.info("starting index={} destination index={}", startingIndex, destinationIndex);
 
         if (startingIndex == destinationIndex)
         {
-            return false;
+            log.info("Starting index and destination index are the same");
+            return true;
         }
 
         if (startingIndex < 0 || startingIndex > 7 || destinationIndex < 0 || destinationIndex > 7)
@@ -73,30 +74,30 @@ public class Row extends Pane
             throw new UnavailableIndexException("INVALID INDEX NUM: " + "s -> " + startingIndex + " d ->" + destinationIndex);
         }
 
-        //index sort
-        occupiedIndexes.sort((a, b) -> a >= b ? b : a);
-        if (startingIndex < destinationIndex) //cresc
+        if (startingIndex < destinationIndex)
         {
-            for (int i = startingIndex + 1; i != destinationIndex; ++i)
+            for (int i = startingIndex + 1; i < destinationIndex; ++i)
             {
                 if (occupiedIndexes.contains(i))
                 {
-                    return false;
+                    log.info("bad index={}", i);
+                    return true;
                 }
             }
         }
-        else //decresc
+        else
         {
-            for (int i = startingIndex - 1; i != destinationIndex; --i)
+            for (int i = startingIndex - 1; i > destinationIndex; --i)
             {
                 if (occupiedIndexes.contains(i))
                 {
-                    return false;
+                    log.info("bad index={}", i);
+                    return true;
                 }
             }
         }
 
-        return true;
+        return false;
     }
 
     @Override
@@ -227,6 +228,12 @@ public class Row extends Pane
         }
         getChildren().remove(tile);
         fireEvent(new TileAMREvent(TileAMREvent.TILE_REMOVE));
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Row: " + ((VBoxRow) getParent()).getChildrenUnmodifiable().indexOf(this);
     }
 
     /* Updates tile's X for it to be correctly displayed on screen */

@@ -1,7 +1,5 @@
 package fallingpuzzle.controller.scene;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import fallingpuzzle.controller.Controller;
@@ -9,6 +7,7 @@ import fallingpuzzle.controller.ia.AIService;
 import fallingpuzzle.controller.ia.DLVAdapter;
 import fallingpuzzle.controller.ia.DLVController;
 import fallingpuzzle.controller.scene.VBoxRow.ChildrenAddedEvent;
+import fallingpuzzle.events.TileAMREvent;
 import fallingpuzzle.exceptions.TileException;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
@@ -17,14 +16,12 @@ import fallingpuzzle.model.TileMove;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
@@ -237,6 +234,7 @@ public class GameController extends Controller
 
         createEvents();
         vboNextRow.addEventHandler(VBoxRow.CHILDREN_ADDED, rowSlideUp);
+        vboRows.addEventHandler(TileAMREvent.TILE_MOVE, event -> updateRows(true));
         tbnAiSwitch.setOnAction(iASwitch);
         mniRowUp.setOnAction(rowUp);
         mniInitBoard.setOnAction(initBoard);
@@ -297,41 +295,6 @@ public class GameController extends Controller
         }
     }
 
-    /* MAIN ALGORITHM */
-    // 1 - while -> check each row for falling tiles ( starting from bottom ) returns true
-    // 2 - if -> check for a full row ( starting from bottom )
-    // 2a true -> remove it then go to step 1
-    // 2b false -> end
-    public void updateRows(final boolean addScore)
-    {
-        int score = 0;
-
-        boolean cycle = true;
-        while (cycle)
-        {
-            cycle = false;
-            //step 1
-            boolean fallingTiles = false;
-            do
-            {
-                fallingTiles = handleFallingTiles();
-            }
-            while (fallingTiles);
-
-            //step 2
-            if (handleFullRows())
-            {
-                cycle = true;
-                ++score;
-            }
-        }
-        if (addScore)
-        {
-            addScore(score);
-        }
-
-    }
-
     private void createEvents()
     {
         iASwitch = event ->
@@ -379,55 +342,61 @@ public class GameController extends Controller
 
     private boolean handleFallingTiles()
     {
-        final ObservableList<Node> rows = vboRows.getChildren();
         final AtomicBoolean falling = new AtomicBoolean(false);
-        for (int i = rows.size() - 2; i >= 0; --i)
+        for (int i = vboRows.getChildren().size() - 2; i >= 0; --i)
         {
-            final Row currentRow = (Row) rows.get(i);
-            final Row nextRow = (Row) rows.get(i + 1);
-            currentRow.getChildrenUnmodifiable().forEach(node ->
+            final Row currentRow = (Row) vboRows.getChildren().get(i);
+            final Row bottomRow = (Row) vboRows.getChildren().get(i + 1);
+            currentRow.getChildren().forEach(node ->
                 {
                     try
                     {
-                        nextRow.addTile((Tile) node);
+                        bottomRow.addTile((Tile) node);
+                        currentRow.removeTile((Tile) node);
+                        addScore(1);
                         falling.set(true);
-
                     }
-                    catch (final TileException tileException)
+                    catch (final TileException e)
                     {
-                        log.warn("{}", tileException.getMessage());
                     }
-
                 });
+
         }
         return falling.get();
     }
 
     private boolean handleFullRows()
     {
-        boolean value = false;
-        try
+        for (int i = vboRows.getChildren().size() - 1; i >= 0; --i)
         {
-            final ObservableList<Node> rows = vboRows.getChildren();
-            final List<Node> rowsToRemove = new ArrayList<>();
-            for (int i = rows.size() - 1; i >= 0; --i)
+            if (((Row) vboRows.getChildren().get(i)).isFull())
             {
-                final Row currentRow = (Row) rows.get(i);
-                if (currentRow.isFull())
-                {
-                    rowsToRemove.add(currentRow);
-                    value = true;
-                }
+                vboRows.getChildren().remove(i);
+                return true;
             }
-            rows.removeAll(rowsToRemove);
         }
-        catch (
+        return false;
+    }
 
-        final Exception e)
+    /* MAIN ALGORITHM */
+    // 1 - while -> check each row for falling tiles ( starting from bottom ) returns true
+    // 2 - if -> check for a full row ( starting from bottom )
+    // 2a true -> remove it then go to step 1
+    // 2b false -> end
+    private void updateRows(final boolean addScore) //TODO oof
+    {
+        boolean fullRows = true;
+        boolean fallingTiles = true;
+        do
         {
-            e.printStackTrace();
+            fallingTiles = handleFallingTiles();
+            do
+            {
+                fullRows = handleFullRows();
+            }
+            while (fullRows);
         }
-        return value;
+        while (fallingTiles);
     }
 
 }

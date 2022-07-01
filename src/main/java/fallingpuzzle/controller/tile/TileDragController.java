@@ -83,11 +83,11 @@ public class TileDragController extends DragController
                     {
                         deltaIndex += 5;
                     }
-                    else if (absTranslate >= 390 && absTranslate < 455)
+                    else if (absTranslate >= 390 && absTranslate < 445)
                     {
                         deltaIndex += 6;
                     }
-                    else if (absTranslate >= 455)
+                    else if (absTranslate >= 445)
                     {
                         deltaIndex += 7;
                     }

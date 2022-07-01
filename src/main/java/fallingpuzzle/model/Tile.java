@@ -50,15 +50,7 @@ public class Tile extends Rectangle
     @Override
     public boolean equals(final Object obj)
     {
-        if (obj == null)
-        {
-            return false;
-        }
-        if (!(obj instanceof Tile))
-        {
-            return false;
-        }
-        return obj.hashCode() == hashCode();
+        return super.equals(obj);
     }
 
     public int getFirstIndex()
@@ -116,6 +108,12 @@ public class Tile extends Rectangle
     public void setSelectable(final boolean selectable)
     {
         tileSelectController.setSelectable(selectable);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Tile - indexes: " + indexes + " - size: " + size;
     }
 
     public void updateTileSize(final double baseWidth, final double baseHeight)

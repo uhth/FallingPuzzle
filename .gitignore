@@ -2,6 +2,7 @@ target/
 ps/
 bin/
 save.bat
+save-beta.bat
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

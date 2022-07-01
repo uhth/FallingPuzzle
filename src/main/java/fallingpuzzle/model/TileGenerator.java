@@ -2,7 +2,6 @@ package fallingpuzzle.model;
 
 import java.util.Random;
 
-import javafx.scene.paint.Color;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -18,32 +17,23 @@ public class TileGenerator
         {
             int index = 0;
             int size = 0;
-            Tile tile;
-            int counter = 0;
-            do
+            int counter1 = 0;
+            while (counter1++ < 10)
             {
                 index = random.nextInt(6);
                 size = random.nextInt(3) + 1;
-                tile = new Tile(index, size, row.getWidth() / 8, tileHeight);
-                //log.info("index: {} size: {} collides: {}", index, size, row.collidesWithOtherTiles(tile));
-            }
-            while (row.collidesWithOtherTiles(tile) && counter++ <= 10);
+                final Tile tile = new Tile(index, size, row.getWidth() / 8, tileHeight);
+                try
+                {
+                    row.addTile(tile);
+                }
+                catch (final Exception e)
+                {
+                    // log.warn("{} size: {}, indexes: {}", e.getMessage(), tile.getSize(), tile.getIndexes());
+                    //e.printStackTrace();
 
-            if (tile.getNCell() == 1)
-            {
-                tile.setFill(Color.BLACK);
+                }
             }
-            else if (tile.getNCell() == 2)
-            {
-                tile.setFill(Color.RED);
-            }
-            else
-            {
-                tile.setFill(Color.BLUE);
-            }
-
-            row.getChildren().add(tile);
-
         }
     }
 

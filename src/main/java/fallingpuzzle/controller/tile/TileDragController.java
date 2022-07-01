@@ -1,6 +1,6 @@
 package fallingpuzzle.controller.tile;
 
-import fallingpuzzle.controller.scene.GameController;
+import fallingpuzzle.exceptions.TileException;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import javafx.scene.Node;
@@ -10,10 +10,10 @@ import lombok.extern.log4j.Log4j2;
 public class TileDragController extends DragController
 {
 
-    public TileDragController(final Node target)
+    public TileDragController(final Node target, final boolean isDraggable)
     {
 
-        super(target, true);
+        super(target, isDraggable);
     }
 
     @Override
@@ -93,15 +93,22 @@ public class TileDragController extends DragController
                     }
 
                     deltaIndex *= isTranslatePos ? 1 : -1;
-                    oldIndex += deltaIndex;
+                    final int newIndex = oldIndex += deltaIndex;
 
                     target.setTranslateX(0);
 
-                    final GameController gameController = row.getGameController();
+                    final Tile targetTile = (Tile) target;
 
                     if (deltaIndex != 0)
                     {
-                        gameController.moveTile((Tile) target, oldIndex, (Row) tile.getParent());
+                        try
+                        {
+                            targetTile.getParentRow().moveTile(targetTile, newIndex);
+                        }
+                        catch (final TileException e)
+                        {
+                            e.printStackTrace();
+                        }
                     }
                 }
             };

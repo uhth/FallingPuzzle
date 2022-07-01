@@ -3,8 +3,12 @@ package fallingpuzzle.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import fallingpuzzle.controller.scene.GameController;
 import fallingpuzzle.controller.scene.VBoxRow;
+import fallingpuzzle.events.TileAMREvent;
+import fallingpuzzle.exceptions.DuplicateTileException;
+import fallingpuzzle.exceptions.TileNotFoundException;
+import fallingpuzzle.exceptions.UnavailableIndexException;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import lombok.extern.log4j.Log4j2;
 
@@ -12,67 +16,87 @@ import lombok.extern.log4j.Log4j2;
 public class Row extends Pane
 {
 
-    private GameController gameController;
+    private ArrayList<Integer> freeIndexes;
+
+    private final ArrayList<Integer> occupiedIndexes;
 
     public Row()
     {
+        freeIndexes = new ArrayList<>();
+        occupiedIndexes = new ArrayList<>();
+        addEventHandler(TileAMREvent.TILE_OPS, event -> updateIndexesLists());
+        updateIndexesLists();
         setFocusTraversable(true);
     }
 
-    /* Checks for each tile already in if the tested one has any index in common */
-    public boolean collidesWithOtherTiles(final Tile tileToTest)
+    //ADDS TILE TO THIS ROW
+    public void addTile(final Tile tile) throws UnavailableIndexException, DuplicateTileException
     {
-        if (getChildren().isEmpty())
+        if (tile == null)
+        {
+            throw new NullPointerException();
+        }
+        if (getChildren().contains(tile))
+        {
+            throw new DuplicateTileException("Tile: " + tile.toString() + " already belongs to this row");
+        }
+        if (isOutOfBorder(tile.getFirstIndex(), tile.getSize()))
+        {
+            throw new UnavailableIndexException(
+                    "Tile would lay outside the grid: " + (tile.getFirstIndex() + tile.getSize() - 1));
+        }
+        for (final Integer index : tile.getIndexes())
+        {
+            if (!isIndexFree(index))
+            {
+                throw new UnavailableIndexException("Index: " + index + " is not available.");
+            }
+        }
+        getChildren().add(tile);
+        fireEvent(new TileAMREvent(TileAMREvent.TILE_ADD));
+    }
+
+    //CHECKS FOR INDEXES i between STARTING s and DESTINATION d :    s --- i? --- d  || d --- i? --- s ( s and d excluded )
+    public boolean checkForTilesBetweenTwoIndexes(final int startingIndex, final int destinationIndex)
+            throws UnavailableIndexException
+    {
+
+        log.info("starting index={} destinatnion index={}", startingIndex, destinationIndex);
+
+        if (startingIndex == destinationIndex)
         {
             return false;
         }
-        final ArrayList<Integer> unavailableIndexes = new ArrayList<Integer>();
-        for (int i = 0; i < getChildren().size(); ++i)
+
+        if (startingIndex < 0 || startingIndex > 7 || destinationIndex < 0 || destinationIndex > 7)
         {
-            final Tile tile = (Tile) getChildren().get(i);
-            if (!tile.equals(tileToTest))
+            throw new UnavailableIndexException("INVALID INDEX NUM: " + "s -> " + startingIndex + " d ->" + destinationIndex);
+        }
+
+        //index sort
+        occupiedIndexes.sort((a, b) -> a >= b ? b : a);
+        if (startingIndex < destinationIndex) //cresc
+        {
+            for (int i = startingIndex + 1; i != destinationIndex; ++i)
             {
-                unavailableIndexes.addAll(tile.getIndexes());
+                if (occupiedIndexes.contains(i))
+                {
+                    return false;
+                }
+            }
+        }
+        else //decresc
+        {
+            for (int i = startingIndex - 1; i != destinationIndex; --i)
+            {
+                if (occupiedIndexes.contains(i))
+                {
+                    return false;
+                }
             }
         }
 
-        for (int i = 0; i < tileToTest.getIndexes().size(); ++i)
-        {
-            if (unavailableIndexes.contains(tileToTest.getIndexes().get(i)) || i < 0 || i > 7)
-            {
-                //  log.info("collides with : {} | tesing {} ", tileToTest.getIndexes().get(i), tileToTest.getIndexes());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /* Checks for each tile already in if the tested one has any index in common if you try to move it */
-    public boolean collidesWithOtherTiles(final Tile tileToTest, final int mockFirstIndex)
-    {
-        final ArrayList<Integer> unavailableIndexes = new ArrayList<Integer>();
-        for (int i = 0; i < getChildren().size(); ++i)
-        {
-            final Tile tile = (Tile) getChildren().get(i);
-            if (!tile.equals(tileToTest))
-            {
-                unavailableIndexes.addAll(tile.getIndexes());
-            }
-        }
-
-        final int trueFirstIndex = tileToTest.getFirstIndex();
-        tileToTest.move(mockFirstIndex);
-
-        for (int i = 0; i < tileToTest.getIndexes().size(); ++i)
-        {
-            if (unavailableIndexes.contains(tileToTest.getIndexes().get(i)) || i < 0 || i > 7)
-            {
-                tileToTest.move(trueFirstIndex);
-                return true;
-            }
-        }
-        tileToTest.move(trueFirstIndex);
-        return false;
+        return true;
     }
 
     @Override
@@ -110,11 +134,6 @@ public class Row extends Pane
 
     }
 
-    public GameController getGameController()
-    {
-        return gameController;
-    }
-
     /* get Tile by Index */
     public Tile getTile(final int index)
     {
@@ -129,116 +148,85 @@ public class Row extends Pane
         return null;
     }
 
-    /* Only inserts tiles which can fit inside this row */
-    public void insert(final List<Tile> tilesToInsert)
-    {
-        for (int i = 0; i < tilesToInsert.size(); ++i)
-        {
-            final Tile tile = tilesToInsert.get(i);
-            if (!collidesWithOtherTiles(tile))
-            {
-                getChildren().add(tile);
-            }
-        }
-        updateTilesCoords();
-    }
-
-    /* Only inserts a tile which can fit inside this row */
-    public void insert(final Tile tileToInsert, final boolean checkForCollision)
-    {
-        if (!checkForCollision || !collidesWithOtherTiles(tileToInsert))
-        {
-            getChildren().add(tileToInsert);
-        }
-        updateTilesCoords();
-    }
-
     public boolean isFull()
     {
-        int indexCount = 0;
-        for (int i = 0; i < getChildren().size(); ++i)
+        return freeIndexes.isEmpty();
+    }
+
+    //check if index is free
+    public boolean isIndexFree(final int index)
+    {
+        return freeIndexes.contains(index);
+    }
+
+    //check if index is free and doesn't belong to tile
+    public boolean isIndexFree(final int index, final Tile tile)
+    {
+        if (freeIndexes.contains(index))
         {
-            indexCount += ((Tile) getChildren().get(i)).getIndexes().size();
+            return true;
         }
-        if (indexCount == 8)
+        if (tile.getIndexes().contains(index))
         {
             return true;
         }
         return false;
     }
 
-    /* Used by controller to move a tile */
-    public boolean moveTile(final Tile tile, final int index)
+    //check for out-of-borders
+    public boolean isOutOfBorder(final int firstIndex, final int tileSize)
     {
-        final int oldIndex = tile.getFirstIndex();
-        if (tilesInBeetween(tile, index))
-        {
-            log.info(" ILLEGAL MOVE -> row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
-            return false;
-        }
-        tile.move(index);
-        if (collidesWithOtherTiles(tile))
-        {
-            tile.move(oldIndex);
-            log.info("{}", "ILLEGAL MOVE");
-            log.info("row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
-            return false;
-        }
-        else
-        {
-            log.info("row: {} move is: {} to {}", gameController.getRowIndex(this), oldIndex, index);
-            return true;
-        }
+        return firstIndex + tileSize - 1 > 7;
     }
 
-    public void remove(final Tile tile)
+    //MOVES TILE INSIDE THIS ROW
+    public void moveTile(final Tile tile, final int destIndex) throws TileNotFoundException, UnavailableIndexException
     {
+        if (tile == null)
+        {
+            throw new NullPointerException();
+        }
+        if (!getChildren().contains(tile))
+        {
+            throw new TileNotFoundException("Tile: " + tile.toString() + " doesn't belong to this row.");
+        }
+
+        //check if dest index is free and doesn't belong to this tile
+        if (!isIndexFree(destIndex, tile))
+        {
+            throw new UnavailableIndexException("Index: " + destIndex + " is already occupied");
+        }
+
+        //check for out-of-border (only for the right side)
+        if (isOutOfBorder(destIndex, tile.getSize()))
+        {
+            throw new UnavailableIndexException(
+                    "Destination index would put the tile outside the grid: " + (destIndex + tile.getSize() - 1));
+        }
+        //when checking to the right, we need to pass last index instead of firstIndex
+        final int firstIndex = tile.getFirstIndex() < destIndex ? tile.getLastIndex() : tile.getFirstIndex();
+        if (checkForTilesBetweenTwoIndexes(firstIndex, destIndex))
+        {
+            throw new UnavailableIndexException("Tiles be sitting between the current index and the destination index");
+        }
+        tile.move(destIndex);
+        tile.fireEvent(new TileAMREvent(TileAMREvent.TILE_MOVE));
+        updateTilesCoords();
+    }
+
+    //REMOVES TILE FROM THIS ROW
+    public void removeTile(final Tile tile) throws TileNotFoundException
+    {
+        if (tile == null)
+        {
+            throw new NullPointerException();
+        }
+        if (!getChildren().contains(tile))
+        {
+            throw new TileNotFoundException("Unable to find:" + tile.toString() + " inside this row");
+        }
         getChildren().remove(tile);
-    }
-
-    public void setGameController(final GameController gameController)
-    {
-        this.gameController = gameController;
-    }
-
-    //if unavailable indexes contains any index in between mock and real return false;
-    public boolean tilesInBeetween(final Tile tileToTest, final int mockIndex)
-    {
-        final ArrayList<Integer> unavailableIndexes = new ArrayList<Integer>();
-        final int realIndex = tileToTest.getFirstIndex();
-        for (int i = 0; i < getChildren().size(); ++i)
-        {
-            final Tile tile = (Tile) getChildren().get(i);
-            if (!tile.equals(tileToTest))
-            {
-                unavailableIndexes.addAll(tile.getIndexes());
-            }
-        }
-        unavailableIndexes.sort((o1, o2) -> o1 > o2 ? o1 : o2);
-        //case mockIndex < realIndex -> test mockIndex + tile size + 1
-        if (mockIndex < realIndex)
-
-        {
-            for (int i = mockIndex + tileToTest.getIndexes().size() + 1; i < realIndex; ++i)
-            {
-                if (unavailableIndexes.contains(i))
-                {
-                    return true;
-                }
-            }
-        }
-        else if (mockIndex > realIndex)
-        {
-            for (int i = realIndex + 1; i < mockIndex; ++i)
-            {
-                if (unavailableIndexes.contains(i))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        fireEvent(new TileAMREvent(TileAMREvent.TILE_REMOVE));
     }
 
     /* Updates tile's X for it to be correctly displayed on screen */
@@ -248,7 +236,26 @@ public class Row extends Pane
         {
             final Tile tile = (Tile) getChildren().get(i);
             tile.setX(tile.getFirstIndex() * (getWidth() / 8));
+            if (getParent() != null && ((VBoxRow) getParent()).getId().equals("vboRows"))
+            {
+                tile.setDraggable(true);
+                tile.setSelectable(true);
+            }
         }
+    }
+
+    //To be called whenever Tiles get ADDED, MOVED, REMOVED to/inside/from this list
+    private void updateIndexesLists()
+    {
+        freeIndexes.clear();
+        occupiedIndexes.clear();
+        for (final Node tile : getChildren())
+        {
+            occupiedIndexes.addAll(((Tile) tile).getIndexes());
+        }
+        freeIndexes = new ArrayList<>();
+        freeIndexes.addAll(List.of(0, 1, 2, 3, 4, 5, 6, 7));
+        freeIndexes.removeAll(occupiedIndexes);
     }
 
 }

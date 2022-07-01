@@ -9,6 +9,7 @@ import fallingpuzzle.controller.ia.AIService;
 import fallingpuzzle.controller.ia.DLVAdapter;
 import fallingpuzzle.controller.ia.DLVController;
 import fallingpuzzle.controller.scene.VBoxRow.ChildrenAddedEvent;
+import fallingpuzzle.exceptions.TileException;
 import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import fallingpuzzle.model.TileGenerator;
@@ -144,20 +145,27 @@ public class GameController extends Controller
         {
             final Row row = getRowByIndex(tileMove.getRowIndex());
             final Integer newIndex = tileMove.getNewIndex();
-            if (row.moveTile(tileMove.getTile(), newIndex))
+            try
             {
+                row.moveTile(tileMove.getTile(), newIndex);
                 rowUp(true);
                 updateRows(true);
+
             }
-            else
+            catch (final TileException tileException)
             {
+                tbnAiSwitch.fire();
                 tileMove.getTile().setFill(Color.GREEN);
                 final BackgroundFill[] bgFills = new BackgroundFill[1];
                 bgFills[0] = new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY);
                 final Background bg = new Background(bgFills);
                 row.setBackground(bg);
-                log.warn("tile: {}, indexes: {}", tileMove.getTile(), tileMove.getTile().getIndexes());
-                tbnAiSwitch.fire();
+                log.warn("{}", tileException.getMessage());
+                tileException.printStackTrace();
+            }
+            catch (final Exception everyOtherException)
+            {
+                everyOtherException.printStackTrace();
             }
         }
         readyForAi.set(true);
@@ -250,11 +258,6 @@ public class GameController extends Controller
 
     }
 
-    public void moveTile(final Tile tile, final Integer newIndex, final Row row)
-    {
-        row.moveTile(tile, newIndex);
-    }
-
     public void reset()
     {
         try
@@ -281,7 +284,6 @@ public class GameController extends Controller
                 reset();
             }
             final Row row = new Row();
-            row.setGameController(this);
             tileGenerator.genTiles(row);
             vboNextRow.addChildren(row);
             row.updateTilesCoords();
@@ -381,23 +383,22 @@ public class GameController extends Controller
         final AtomicBoolean falling = new AtomicBoolean(false);
         for (int i = rows.size() - 2; i >= 0; --i)
         {
-            final List<Node> tilesToInsert = new ArrayList<>();
             final Row currentRow = (Row) rows.get(i);
             final Row nextRow = (Row) rows.get(i + 1);
-            currentRow.getChildren().forEach(node ->
+            currentRow.getChildrenUnmodifiable().forEach(node ->
                 {
-                    if (!nextRow.collidesWithOtherTiles((Tile) node))
+                    try
                     {
-                        tilesToInsert.add(node);
+                        nextRow.addTile((Tile) node);
                         falling.set(true);
+
                     }
+                    catch (final TileException tileException)
+                    {
+                        log.warn("{}", tileException.getMessage());
+                    }
+
                 });
-            tilesToInsert.forEach(node ->
-                {
-                    nextRow.insert((Tile) node, false);
-                    currentRow.remove((Tile) node);
-                });
-            tilesToInsert.clear();
         }
         return falling.get();
     }

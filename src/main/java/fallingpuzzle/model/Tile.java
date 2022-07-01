@@ -1,12 +1,12 @@
 package fallingpuzzle.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import fallingpuzzle.controller.tile.TileDragController;
 import fallingpuzzle.controller.tile.TileSelectController;
-import fallingpuzzle.model.utils.IndexChangeListener;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import fallingpuzzle.events.TileAMREvent;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Tile extends Rectangle
@@ -14,9 +14,7 @@ public class Tile extends Rectangle
 
     private final ArrayList<Integer> indexes;
 
-    private final IntegerProperty firstIndex;
-
-    private int nCell;
+    private final int size;
 
     private final TileSelectController tileSelectController;
 
@@ -31,44 +29,83 @@ public class Tile extends Rectangle
         this(firstIndex, nCell, 0.0, 0.0);
     }
 
-    public Tile(final int firstIndex, final int nCell, final double baseWidth, final double baseHeight)
+    public Tile(final int firstIndex, final int size, final double baseWidth, final double baseHeight)
     {
 
+        indexes = new ArrayList<>();
+        indexes.add(firstIndex);
         tileSelectController = new TileSelectController(this, false);
-        tileDragController = new TileDragController(this);
-        tileDragController.isDraggableProperty().set(false);
-        indexes = new ArrayList<Integer>();
-        this.firstIndex = new SimpleIntegerProperty(10);
+        tileDragController = new TileDragController(this, false);
 
-        //Updating first index will also update indexList
-        this.firstIndex.addListener(new IndexChangeListener(this));
-
-        this.nCell = nCell;
+        this.size = size;
         this.baseHeight = baseHeight;
         this.baseWidth = baseWidth;
         resize();
+        setColor();
+        updateIndexesList();
+        this.addEventHandler(TileAMREvent.TILE_MOVE, event -> updateIndexesList());
 
-        this.firstIndex.set(firstIndex);
     }
 
-    public Integer getFirstIndex()
+    @Override
+    public boolean equals(final Object obj)
     {
-        return firstIndex.get();
+        if (obj == null)
+        {
+            return false;
+        }
+        if (!(obj instanceof Tile))
+        {
+            return false;
+        }
+        return obj.hashCode() == hashCode();
     }
 
-    public ArrayList<Integer> getIndexes()
+    public int getFirstIndex()
+    {
+        return indexes.get(0);
+    }
+
+    public List<Integer> getIndexes()
     {
         return indexes;
     }
 
-    public int getNCell()
+    public int getLastIndex()
     {
-        return nCell;
+        return indexes.get(indexes.size() - 1);
     }
 
-    public void move(final int index)
+    public Row getParentRow()
     {
-        firstIndex.set(index);
+        if (parentProperty().get() == null)
+        {
+            throw new NullPointerException();
+        }
+        return (Row) parentProperty().get();
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        try
+        {
+            return getFirstIndex() + size + getParentRow().hashCode();
+        }
+        catch (final Exception e)
+        {
+            return super.hashCode();
+        }
+    }
+
+    public void move(final int newFirstIndex)
+    {
+        indexes.set(0, newFirstIndex);
     }
 
     public void setDraggable(final boolean draggable)
@@ -76,26 +113,9 @@ public class Tile extends Rectangle
         tileDragController.isDraggableProperty().set(draggable);
     }
 
-    public void setNCell(final int nCell)
-    {
-        this.nCell = nCell;
-        updateIndexes(firstIndex.getValue());
-        resize();
-    }
-
     public void setSelectable(final boolean selectable)
     {
         tileSelectController.setSelectable(selectable);
-    }
-
-    //Used by listener to update tile indexes as the first index changes
-    public void updateIndexes(final Number newValue)
-    {
-        indexes.clear();
-        for (int i = 0; i < nCell; ++i)
-        {
-            indexes.add(newValue.intValue() + i);
-        }
     }
 
     public void updateTileSize(final double baseWidth, final double baseHeight)
@@ -107,8 +127,34 @@ public class Tile extends Rectangle
 
     private void resize()
     {
-        setWidth(baseWidth * nCell - 2);
+        setWidth(baseWidth * size - 2);
         setHeight(baseHeight - 2);
+    }
+
+    private void setColor()
+    {
+        switch (size)
+        {
+            case 3:
+                setFill(Color.RED);
+                break;
+            case 2:
+                setFill(Color.BLUE);
+                break;
+            default:
+                setFill(Color.BLACK);
+                break;
+        }
+    }
+
+    private void updateIndexesList()
+    {
+        final int firstIndex = indexes.get(0);
+        indexes.clear();
+        for (int i = 0; i < size; ++i)
+        {
+            indexes.add(firstIndex + i);
+        }
     }
 
 }

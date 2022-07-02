@@ -25,6 +25,7 @@ public class Row extends Pane
         freeIndexes = new ArrayList<>();
         occupiedIndexes = new ArrayList<>();
         addEventHandler(TileAMREvent.TILE_OPS, event -> updateIndexesLists());
+
         updateIndexesLists();
         setFocusTraversable(true);
     }
@@ -57,7 +58,7 @@ public class Row extends Pane
     }
 
     //CHECKS FOR INDEXES i between STARTING s and DESTINATION d :    s --- i? --- d  || d --- i? --- s ( s and d excluded )
-    public boolean checkForTilesBetweenTwoIndexes(final int startingIndex, final int destinationIndex)
+    public boolean checkForTilesBetweenTwoIndexes(final int startingIndex, final int destinationIndex, final Tile tile)
             throws UnavailableIndexException
     {
 
@@ -78,7 +79,7 @@ public class Row extends Pane
         {
             for (int i = startingIndex + 1; i < destinationIndex; ++i)
             {
-                if (occupiedIndexes.contains(i))
+                if (occupiedIndexes.contains(i) && !tile.getIndexes().contains(i))
                 {
                     log.info("bad index={}", i);
                     return true;
@@ -89,7 +90,7 @@ public class Row extends Pane
         {
             for (int i = startingIndex - 1; i > destinationIndex; --i)
             {
-                if (occupiedIndexes.contains(i))
+                if (occupiedIndexes.contains(i) && !tile.getIndexes().contains(i))
                 {
                     log.info("bad index={}", i);
                     return true;
@@ -97,16 +98,6 @@ public class Row extends Pane
             }
         }
 
-        return false;
-    }
-
-    @Override
-    public boolean equals(final Object row)
-    {
-        if (row instanceof Row)
-        {
-            return getChildren().containsAll(((Row) row).getChildren());
-        }
         return false;
     }
 
@@ -163,15 +154,8 @@ public class Row extends Pane
     //check if index is free and doesn't belong to tile
     public boolean isIndexFree(final int index, final Tile tile)
     {
-        if (freeIndexes.contains(index))
-        {
-            return true;
-        }
-        if (tile.getIndexes().contains(index))
-        {
-            return true;
-        }
-        return false;
+        return freeIndexes.contains(index) || tile.getIndexes().contains(index);
+
     }
 
     //check for out-of-borders
@@ -204,15 +188,13 @@ public class Row extends Pane
             throw new UnavailableIndexException(
                     "Destination index would put the tile outside the grid: " + (destIndex + tile.getSize() - 1));
         }
-        //when checking to the right, we need to pass last index instead of firstIndex
-        final int firstIndex = tile.getFirstIndex() < destIndex ? tile.getLastIndex() : tile.getFirstIndex();
-        if (checkForTilesBetweenTwoIndexes(firstIndex, destIndex))
+        if (checkForTilesBetweenTwoIndexes(tile.getFirstIndex(), destIndex, tile))
         {
-            throw new UnavailableIndexException("Tiles be sitting between the current index and the destination index");
+            throw new UnavailableIndexException(
+                    "Tiles be sitting between the current index and the destination index " + occupiedIndexes);
         }
         tile.move(destIndex);
         tile.fireEvent(new TileAMREvent(TileAMREvent.TILE_MOVE));
-        updateTilesCoords();
     }
 
     //REMOVES TILE FROM THIS ROW
@@ -224,7 +206,7 @@ public class Row extends Pane
         }
         if (!getChildren().contains(tile))
         {
-            throw new TileNotFoundException("Unable to find:" + tile.toString() + " inside this row");
+            throw new TileNotFoundException("Unable to find: " + tile.toString() + " inside " + toString());
         }
         getChildren().remove(tile);
         fireEvent(new TileAMREvent(TileAMREvent.TILE_REMOVE));
@@ -233,12 +215,13 @@ public class Row extends Pane
     @Override
     public String toString()
     {
-        return "Row: " + ((VBoxRow) getParent()).getChildrenUnmodifiable().indexOf(this);
+        return "Row{index=" + ((VBoxRow) getParent()).getChildrenUnmodifiable().indexOf(this) + "}";
     }
 
     /* Updates tile's X for it to be correctly displayed on screen */
     public void updateTilesCoords()
     {
+        updateIndexesLists();
         for (int i = 0; i < getChildren().size(); ++i)
         {
             final Tile tile = (Tile) getChildren().get(i);

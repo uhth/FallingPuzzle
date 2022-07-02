@@ -1,7 +1,6 @@
 package fallingpuzzle.controller.tile;
 
 import fallingpuzzle.exceptions.TileException;
-import fallingpuzzle.model.Row;
 import fallingpuzzle.model.Tile;
 import javafx.scene.Node;
 import lombok.extern.log4j.Log4j2;
@@ -59,7 +58,6 @@ public class TileDragController extends DragController
                     final double absTranslate = Math.abs(translate);
                     final boolean isTranslatePos = translate >= 0 ? true : false;
                     final Tile tile = (Tile) target;
-                    final Row row = (Row) tile.getParent();
                     int oldIndex = tile.getFirstIndex();
                     int deltaIndex = 0;
 
@@ -107,7 +105,7 @@ public class TileDragController extends DragController
                         }
                         catch (final TileException e)
                         {
-                            e.printStackTrace();
+                            log.info("{}", e.getMessage());
                         }
                     }
                 }

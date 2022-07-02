@@ -1,7 +1,10 @@
 package fallingpuzzle.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import org.apache.commons.lang3.RandomStringUtils;
 
 import fallingpuzzle.controller.tile.TileDragController;
 import fallingpuzzle.controller.tile.TileSelectController;
@@ -11,6 +14,8 @@ import javafx.scene.shape.Rectangle;
 
 public class Tile extends Rectangle
 {
+
+    private static final HashMap<Integer, Tile> hashes = new HashMap<>();
 
     private final ArrayList<Integer> indexes;
 
@@ -24,10 +29,7 @@ public class Tile extends Rectangle
 
     private double baseHeight = 0;
 
-    public Tile(final int firstIndex, final int nCell)
-    {
-        this(firstIndex, nCell, 0.0, 0.0);
-    }
+    private int hash;
 
     public Tile(final int firstIndex, final int size, final double baseWidth, final double baseHeight)
     {
@@ -45,12 +47,19 @@ public class Tile extends Rectangle
         updateIndexesList();
         this.addEventHandler(TileAMREvent.TILE_MOVE, event -> updateIndexesList());
 
+        //tile hash
+        do
+        {
+            hash = RandomStringUtils.randomAlphabetic(30, 36).chars().reduce(0, (left, right) -> left + right);
+        }
+        while (hashes.putIfAbsent(hash, this) == null);
+
     }
 
     @Override
     public boolean equals(final Object obj)
     {
-        return super.equals(obj);
+        return obj != null && obj.hashCode() == hashCode();
     }
 
     public int getFirstIndex()
@@ -85,14 +94,7 @@ public class Tile extends Rectangle
     @Override
     public int hashCode()
     {
-        try
-        {
-            return getFirstIndex() + size + getParentRow().hashCode();
-        }
-        catch (final Exception e)
-        {
-            return super.hashCode();
-        }
+        return hash;
     }
 
     public void move(final int newFirstIndex)
@@ -113,7 +115,7 @@ public class Tile extends Rectangle
     @Override
     public String toString()
     {
-        return "Tile - indexes: " + indexes + " - size: " + size;
+        return "Tile{indexes=" + indexes + ", size=" + size + "}";
     }
 
     public void updateTileSize(final double baseWidth, final double baseHeight)

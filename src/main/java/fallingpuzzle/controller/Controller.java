@@ -5,7 +5,9 @@ import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public abstract class Controller
 {
 
@@ -23,7 +25,7 @@ public abstract class Controller
         catch (final IOException e)
         {
             e.printStackTrace();
-            System.err.println("Can't figure out controller's path in FXML file.");
+            log.error("Can't figure out controller's path in FXML file.");
         }
         return scene;
     }

@@ -62,7 +62,7 @@ public class Row extends Pane
             throws UnavailableIndexException
     {
 
-        log.info("starting index={} destination index={}", startingIndex, destinationIndex);
+        //log.info("starting index={} destination index={}", startingIndex, destinationIndex);
 
         if (startingIndex == destinationIndex)
         {

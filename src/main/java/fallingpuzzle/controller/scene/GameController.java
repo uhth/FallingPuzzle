@@ -60,7 +60,8 @@ public class GameController extends Controller
         selectedTile.setHeight(selectedTile.getHeight() - 2);
         selectedTile.setX(selectedTile.getX() + 1);
         selectedTile.setY(selectedTile.getY() + 1);
-        log.info("{}, {}", selectedTile.toString(), selectedTile.getParentRow().toString());
+        log.info("{}, {}, full={}", selectedTile.toString(), selectedTile.getParentRow().toString(),
+                selectedTile.getParentRow().isFull());
     }
 
     private VBoxRow vboRows;
@@ -242,7 +243,6 @@ public class GameController extends Controller
         mniCallAi.setOnAction(event -> callAi());
 
         lblScore.setText("0");
-        vboRows.requestFocus();
         sldAiLantecy.valueProperty().addListener((a, b, c) -> lblSlider.setText("" + c.intValue()));
         lblSlider.setText("" + sldAiLantecy.valueProperty().intValue());
 
@@ -272,10 +272,7 @@ public class GameController extends Controller
             final ArrayList<Node> tilesToMove = new ArrayList<>();
             final Row currentRow = (Row) vboRows.getChildren().get(i);
             final Row bottomRow = (Row) vboRows.getChildren().get(i + 1);
-            currentRow.getChildren().forEach(node ->
-                {
-                    tilesToMove.add(node);
-                });
+            currentRow.getChildren().forEach(tilesToMove::add);
             for (final Node tile : tilesToMove)
             {
                 try
@@ -294,10 +291,11 @@ public class GameController extends Controller
 
     private boolean handleFullRows()
     {
-        for (int i = 0; i < vboRows.getChildren().size() - 1; ++i)
+        for (int i = vboRows.getChildren().size() - 1; i >= 0; --i)
         {
             if (((Row) vboRows.getChildren().get(i)).isFull())
             {
+                log.info("{} removed", vboRows.getChildren().get(i).toString());
                 vboRows.getChildren().remove(i);
                 addScore(1);
                 return true;
@@ -357,7 +355,7 @@ public class GameController extends Controller
     }
 
     /* MAIN ALGORITHM */
-    // 1 - while -> check each row for falling tiles ( starting from bottom ) returns true
+    // 1 - while -> check each row for falling tiles
     // 2 - if -> check for a full row ( starting from bottom )
     // 2a true -> remove it then go to step 1
     // 2b false -> end

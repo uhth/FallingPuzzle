@@ -99,7 +99,7 @@ public class DLVController
         dlvExe = files[0];
     }
 
-    private TileMove processOutput(final Stream<String> output) throws IOException
+    private TileMove processOutput(final Stream<String> output)
     {
         final HashMap<String, Integer> info = new HashMap<>();
 
@@ -113,6 +113,10 @@ public class DLVController
                     info.put("firstIndex", Integer.parseInt(matcher.group("firstIndex")));
                     info.put("newIndex", Integer.parseInt(matcher.group("newIndex")));
                     info.put("rowIndex", Integer.parseInt(matcher.group("rowIndex")));
+                }
+                if (line.contains("INCOHERENT"))
+                {
+                    log.info("{}", line);
                 }
             });
 

@@ -109,7 +109,7 @@ public class GameController extends Controller
 
     private BooleanProperty aiStateProperty;
 
-    private Service<Object> aiService;
+    private Service<Void> aiService;
 
     private DLVAdapter dlvAdapter;
 
@@ -359,22 +359,31 @@ public class GameController extends Controller
     // 2 - if -> check for a full row ( starting from bottom )
     // 2a true -> remove it then go to step 1
     // 2b false -> end
-    private void updateRows() // <-- TODO cycling must be corrected
+    private void updateRows()
     {
+        boolean repeat = true;
         boolean fullRows = true;
         boolean fallingTiles = true;
-        do
+        while (repeat)
         {
-            fallingTiles = handleFallingTiles();
-            vboRows.getChildren().forEach(node -> ((Row) node).updateTilesCoords());
+            repeat = false;
+            do
+            {
+                fallingTiles = handleFallingTiles();
+                vboRows.getChildren().forEach(node -> ((Row) node).updateTilesCoords());
+            }
+            while (fallingTiles);
+            do
+            {
+                fullRows = handleFullRows();
+                vboRows.getChildren().forEach(node -> ((Row) node).updateTilesCoords());
+                if (fullRows)
+                {
+                    repeat = true;
+                }
+            }
+            while (fullRows);
         }
-        while (fallingTiles);
-        do
-        {
-            fullRows = handleFullRows();
-            vboRows.getChildren().forEach(node -> ((Row) node).updateTilesCoords());
-        }
-        while (fullRows);
     }
 
 }

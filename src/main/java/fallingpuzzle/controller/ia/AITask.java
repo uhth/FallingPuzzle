@@ -4,7 +4,7 @@ import fallingpuzzle.controller.scene.GameController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
-public class AITask extends Task<Object>
+public class AITask extends Task<Void>
 {
 
     GameController gc;
@@ -15,7 +15,7 @@ public class AITask extends Task<Object>
     }
 
     @Override
-    protected Object call() throws Exception
+    protected Void call() throws Exception
     {
         try
         {

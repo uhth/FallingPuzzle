@@ -4,7 +4,7 @@ import fallingpuzzle.controller.scene.GameController;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
-public class AIService extends Service<Object>
+public class AIService extends Service<Void>
 {
     GameController gc;
 
@@ -14,7 +14,7 @@ public class AIService extends Service<Object>
     }
 
     @Override
-    protected Task<Object> createTask()
+    protected Task<Void> createTask()
     {
         return new AITask(gc);
     }

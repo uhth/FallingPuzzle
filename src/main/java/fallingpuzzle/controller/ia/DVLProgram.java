@@ -56,7 +56,7 @@ public interface DVLProgram
         program.append("\n" + ":- nTileMoves( S ), S != 1."); //shall be 1 move
 
         program.append("\n" + ":- tileMove( X, Y, R )," //no tiles already there
-                + " tile( Z, Y, R ).");
+                + " tile( Z, Y, R ), Z!=X.");
 
         program.append("\n" + ":- tileMove( X, Y, R )," //no tiles in between <- left
                 + " tile( Z, K, R )," + " K > Y," + " K < X," + " Y < X.");
